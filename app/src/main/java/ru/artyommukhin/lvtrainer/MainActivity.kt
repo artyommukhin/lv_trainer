@@ -4,10 +4,8 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.window.DialogProperties
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -20,8 +18,11 @@ import ru.artyommukhin.lvtrainer.dictionary.WordAddDialog
 import ru.artyommukhin.lvtrainer.ui.theme.LVTrainerTheme
 
 // Navigation routes
-@Serializable object Dictionary
-@Serializable object AddWord
+@Serializable
+object Dictionary
+
+@Serializable
+object AddWord
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -29,13 +30,11 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             LVTrainerTheme {
-                var dictionary by remember {
-                    mutableStateOf(
-                        arrayOf(
-                            DictionaryWord("abols", "яблоко"),
-                            DictionaryWord("durvis", "дверь"),
-                            DictionaryWord("logs", "окно"),
-                        )
+                val dictionary = remember {
+                    mutableStateListOf(
+                        DictionaryWord("abols", "яблоко"),
+                        DictionaryWord("durvis", "дверь"),
+                        DictionaryWord("logs", "окно"),
                     )
                 }
                 val navController = rememberNavController()
@@ -48,7 +47,9 @@ class MainActivity : ComponentActivity() {
                                 navController.navigate(
                                     route = AddWord
                                 )
-                            })
+                            },
+                            onDeleteWord = { index -> dictionary.removeAt(index) },
+                        )
                     }
                     dialog<AddWord>(
                         dialogProperties = DialogProperties()
@@ -56,9 +57,9 @@ class MainActivity : ComponentActivity() {
                         WordAddDialog(
                             onDismissRequest = { navController.popBackStack() },
                             onConfirmation = { word, translation ->
-                                dictionary += DictionaryWord(word, translation)
+                                dictionary.add(DictionaryWord(word, translation))
                                 navController.popBackStack()
-                            }
+                            },
                         )
                     }
                 }
