@@ -20,25 +20,33 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.TextUnitType
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
 
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DictionaryPage(
-    words: List<DictionaryWord>,
-    onNavigateToAddWordDialog: () -> Unit,
-    onDeleteWord: (index: Int) -> Unit
+    viewModel: DictionaryViewModel = viewModel(),
 ) {
+    val state by viewModel.state.collectAsStateWithLifecycle()
+    val words = state.words
+
+    val openInputDialog = rememberSaveable { mutableStateOf(false) }
+
     Scaffold(
         topBar = { TopAppBar(title = { Text("Словарь") }) },
         floatingActionButton = {
             FloatingActionButton(
-                onClick = { onNavigateToAddWordDialog() },
+                onClick = { openInputDialog.value = true },
             ) {
                 Icon(Icons.Default.Add, "Add a word")
             }
@@ -57,10 +65,19 @@ fun DictionaryPage(
             itemsIndexed(words) { index, word ->
                 DictionaryItem(
                     word,
-                    onDelete = { onDeleteWord(index) },
+                    onDelete = { viewModel.removeWordAt(index) },
                 )
             }
         }
+    }
+
+    if (openInputDialog.value) {
+        WordInputDialog(
+            onDismissRequest = { openInputDialog.value = false },
+            onConfirmation = { word, translation ->
+                viewModel.addWord(DictionaryWord(word, translation))
+            }
+        )
     }
 }
 
