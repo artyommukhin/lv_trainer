@@ -30,6 +30,7 @@ import androidx.compose.ui.unit.TextUnitType
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import ru.artyommukhin.lvtrainer.dictionary.data.DictionaryWord
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -38,7 +39,6 @@ fun DictionaryPage(
     viewModel: DictionaryViewModel = viewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
-    val words = state.words
 
     val openInputDialog = rememberSaveable { mutableStateOf(false) }
 
@@ -52,30 +52,47 @@ fun DictionaryPage(
             }
         },
     ) { paddingValues ->
-        val columnState = rememberLazyListState()
 
-        LazyColumn(
-            modifier = Modifier
-                .padding(paddingValues)
-                .fillMaxSize(),
-            contentPadding = PaddingValues(vertical = 24.dp, horizontal = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-            state = columnState,
-        ) {
-            itemsIndexed(words) { index, word ->
-                DictionaryItem(
-                    word,
-                    onDelete = { viewModel.removeWordAt(index) },
-                )
+        when (state) {
+            DictionaryState.Loading -> {
+                Text("Loading...")
+            }
+
+            is DictionaryState.Failure -> {
+                Text("Failure")
+            }
+
+            is DictionaryState.Success -> {
+                val words = (state as DictionaryState.Success).words
+
+                val columnState = rememberLazyListState()
+
+                LazyColumn(
+                    modifier = Modifier
+                        .padding(paddingValues)
+                        .fillMaxSize(),
+                    contentPadding = PaddingValues(vertical = 24.dp, horizontal = 16.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                    state = columnState,
+                ) {
+                    itemsIndexed(words) { index, word ->
+                        DictionaryItem(
+                            word,
+                            onDelete = { viewModel.removeWord(words[index]) },
+                        )
+                    }
+                }
             }
         }
+
+
     }
 
     if (openInputDialog.value) {
         WordInputDialog(
             onDismissRequest = { openInputDialog.value = false },
             onConfirmation = { word, translation ->
-                viewModel.addWord(DictionaryWord(word, translation))
+                viewModel.addWord(DictionaryWord(word = word, translation = translation))
             }
         )
     }
