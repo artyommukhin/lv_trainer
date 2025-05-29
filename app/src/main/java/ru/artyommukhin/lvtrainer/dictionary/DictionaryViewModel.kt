@@ -1,9 +1,8 @@
 package ru.artyommukhin.lvtrainer.dictionary
 
-import android.app.Application
-import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.room.Room
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -13,20 +12,19 @@ import ru.artyommukhin.lvtrainer.database.AppDatabase
 import ru.artyommukhin.lvtrainer.dictionary.DictionaryState.Loading
 import ru.artyommukhin.lvtrainer.dictionary.DictionaryState.Success
 import ru.artyommukhin.lvtrainer.dictionary.data.DictionaryWord
+import javax.inject.Inject
 
 sealed interface DictionaryState {
     data object Loading : DictionaryState
     data class Success(val words: List<DictionaryWord>) : DictionaryState
-    data class Failure(val message: String): DictionaryState
+    data class Failure(val message: String) : DictionaryState
 }
 
-class DictionaryViewModel(application: Application) : AndroidViewModel(application) {
-    private val db = Room.databaseBuilder(
-        application,
-        AppDatabase::class.java,
-        "dictionary-db",
-    ).build()
-    private val dictionary = db.dictionaryWordsDao()
+@HiltViewModel
+class DictionaryViewModel @Inject constructor(
+    database: AppDatabase,
+) : ViewModel() {
+    private val dictionary = database.dictionaryWordsDao()
 
     private val _state = MutableStateFlow<DictionaryState>(Loading)
     val state = _state.asStateFlow()
