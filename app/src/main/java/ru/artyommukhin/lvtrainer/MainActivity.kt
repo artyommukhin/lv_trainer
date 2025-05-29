@@ -7,6 +7,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.serialization.Serializable
 import ru.artyommukhin.lvtrainer.dictionary.DictionaryPage
 import ru.artyommukhin.lvtrainer.ui.theme.LVTrainerTheme
@@ -15,6 +16,7 @@ import ru.artyommukhin.lvtrainer.ui.theme.LVTrainerTheme
 @Serializable
 object Dictionary
 
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
