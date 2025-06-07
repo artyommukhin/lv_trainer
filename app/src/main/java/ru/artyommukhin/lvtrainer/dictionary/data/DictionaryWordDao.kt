@@ -10,6 +10,9 @@ interface DictionaryWordDao {
     @Query("SELECT * FROM word")
     fun getAll(): List<DictionaryWord>
 
+    @Query("SELECT * FROM word ORDER BY RANDOM() LIMIT 1")
+    fun getRandomWord(): DictionaryWord?
+
     @Insert
     fun insert(vararg words: DictionaryWord)
 

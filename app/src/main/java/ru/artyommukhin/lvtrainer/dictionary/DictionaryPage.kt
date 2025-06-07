@@ -10,6 +10,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -25,25 +26,34 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.TextUnit
-import androidx.compose.ui.unit.TextUnitType
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
 import ru.artyommukhin.lvtrainer.dictionary.data.DictionaryWord
-
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DictionaryPage(
-    viewModel: DictionaryViewModel = viewModel(),
+    onNavigateBack: () -> Unit,
+    viewModel: DictionaryViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
-
     val openInputDialog = rememberSaveable { mutableStateOf(false) }
 
     Scaffold(
-        topBar = { TopAppBar(title = { Text("Словарь") }) },
+        topBar = {
+            TopAppBar(
+                navigationIcon = {
+                    IconButton(onClick = { onNavigateBack() }) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Localized description"
+                        )
+                    }
+                },
+                title = { Text("Словарь") })
+        },
         floatingActionButton = {
             FloatingActionButton(
                 onClick = { openInputDialog.value = true },
@@ -52,7 +62,6 @@ fun DictionaryPage(
             }
         },
     ) { paddingValues ->
-
         when (state) {
             DictionaryState.Loading -> {
                 Text("Loading...")
@@ -64,7 +73,6 @@ fun DictionaryPage(
 
             is DictionaryState.Success -> {
                 val words = (state as DictionaryState.Success).words
-
                 val columnState = rememberLazyListState()
 
                 LazyColumn(
@@ -84,8 +92,6 @@ fun DictionaryPage(
                 }
             }
         }
-
-
     }
 
     if (openInputDialog.value) {
@@ -110,7 +116,7 @@ fun DictionaryItem(
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Text(
-            fontSize = TextUnit(24f, TextUnitType.Sp),
+            fontSize = 24.sp,
             text = "${word.word} - ${word.translation}",
         )
         IconButton(
