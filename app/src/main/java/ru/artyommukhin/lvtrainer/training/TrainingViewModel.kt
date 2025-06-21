@@ -15,11 +15,14 @@ import javax.inject.Inject
 sealed interface TrainingUiState {
     data object Loading : TrainingUiState
     data object NoWords : TrainingUiState
+    data object NoUntrainedWords : TrainingUiState
     class Active(
         val word: DictionaryWord,
         val isAnsweredCorrectly: Boolean? = null,
-        val isAnswered: Boolean = isAnsweredCorrectly != null,
-    ) : TrainingUiState
+    ) : TrainingUiState {
+
+        val isAnswered: Boolean = isAnsweredCorrectly != null
+    }
 }
 
 @HiltViewModel
@@ -37,19 +40,50 @@ class TrainingViewModel @Inject constructor(
 
     private fun init() {
         viewModelScope.launch(Dispatchers.IO) {
-            var word = dictionary.getRandomWord()
-                ?: return@launch _state.update { TrainingUiState.NoWords }
+            val wordCount = dictionary.getCount()
+
+            if (wordCount == 0) {
+                _state.update { TrainingUiState.NoWords }
+                return@launch
+            }
+
+            var word = dictionary.getRandomUntrainedWord()
+
+            if (word == null) {
+                _state.update { TrainingUiState.NoUntrainedWords }
+                return@launch
+            }
+
+            if (wordCount == 1) {
+                _state.update { TrainingUiState.Active(word!!) }
+                return@launch
+            }
+
             val currentWord = (_state.value as? TrainingUiState.Active)?.word
 
-            while (word == currentWord) word = dictionary.getRandomWord()!!
+            while (word == currentWord) word = dictionary.getRandomUntrainedWord()
 
-            _state.update { TrainingUiState.Active(word) }
+            _state.update { TrainingUiState.Active(word!!) }
         }
     }
 
     fun answer(word: DictionaryWord, translation: String) {
-        _state.update {
-            TrainingUiState.Active(word, word.translation == translation.trim())
+        val correctAnswer = word.translation == translation.trim()
+
+        if (!correctAnswer) {
+            _state.update {
+                TrainingUiState.Active(word, false)
+            }
+            return
+        }
+
+        viewModelScope.launch(Dispatchers.IO) {
+            dictionary.increaseTrainCount(word.id)
+            val newWord = dictionary.getById(word.id)!!
+
+            _state.update {
+                TrainingUiState.Active(newWord, true)
+            }
         }
     }
 

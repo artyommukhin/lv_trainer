@@ -3,16 +3,18 @@ package ru.artyommukhin.lvtrainer.dictionary
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
@@ -83,10 +85,11 @@ fun DictionaryPage(
                     verticalArrangement = Arrangement.spacedBy(8.dp),
                     state = columnState,
                 ) {
-                    itemsIndexed(words) { index, word ->
+                    items(words) { word ->
                         DictionaryItem(
                             word,
-                            onDelete = { viewModel.removeWord(words[index]) },
+                            onReset = { viewModel.resetWordProgress(word) },
+                            onDelete = { viewModel.removeWord(word) },
                         )
                     }
                 }
@@ -107,6 +110,7 @@ fun DictionaryPage(
 @Composable
 fun DictionaryItem(
     word: DictionaryWord,
+    onReset: () -> Unit,
     onDelete: () -> Unit,
 ) {
     Row(
@@ -119,6 +123,17 @@ fun DictionaryItem(
             fontSize = 24.sp,
             text = "${word.word} - ${word.translation}",
         )
+
+        Spacer(Modifier.weight(1f))
+
+        Text("${word.trainCount * 20}%")
+
+        IconButton(
+            onClick = { onReset() }
+        ) {
+            Icon(Icons.Default.Refresh, "Reset word progress")
+        }
+
         IconButton(
             onClick = { onDelete() }
         ) {

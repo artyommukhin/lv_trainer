@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imeNestedScroll
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
@@ -41,6 +42,7 @@ import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
@@ -86,7 +88,30 @@ fun TrainingPage(
             when (val s = state) {
                 TrainingUiState.Loading -> CircularProgressIndicator()
                 TrainingUiState.NoWords -> {
-                    Text("В словаре ещё нет слов")
+                    Text(
+                        "В словаре ещё нет слов",
+                        Modifier.padding(horizontal = 16.dp),
+                        textAlign = TextAlign.Center,
+                    )
+
+                    Spacer(Modifier.height(16.dp))
+
+                    FilledTonalButton(
+                        onClick = { onNavigateToDictionary() }
+                    ) {
+                        Text("Добавить")
+                    }
+                }
+
+                TrainingUiState.NoUntrainedWords -> {
+                    Text(
+                        "Все слова уже изучены",
+                        Modifier.padding(horizontal = 16.dp),
+                        textAlign = TextAlign.Center,
+                    )
+
+                    Spacer(Modifier.height(16.dp))
+
                     FilledTonalButton(
                         onClick = { onNavigateToDictionary() }
                     ) {
@@ -96,6 +121,15 @@ fun TrainingPage(
 
                 is TrainingUiState.Active -> {
                     var input by rememberSaveable { mutableStateOf("") }
+
+                    Text(
+                        "Слово изучено на ${s.word.trainCount * 20}%",
+                        Modifier
+                            .align(Alignment.End)
+                            .padding(horizontal = 16.dp),
+                    )
+
+                    Spacer(Modifier.height(32.dp))
 
                     Text(
                         buildAnnotatedString {

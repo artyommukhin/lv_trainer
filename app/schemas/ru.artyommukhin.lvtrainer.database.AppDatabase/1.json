@@ -2,11 +2,11 @@
   "formatVersion": 1,
   "database": {
     "version": 1,
-    "identityHash": "ea60515f66ae1fc7bc7b24d4c9379168",
+    "identityHash": "4f50d20bfffa89722b3cfd87ea842c3b",
     "entities": [
       {
         "tableName": "word",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `word` TEXT NOT NULL, `translation` TEXT NOT NULL)",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `word` TEXT NOT NULL, `translation` TEXT NOT NULL, `trainCount` INTEGER NOT NULL DEFAULT 0)",
         "fields": [
           {
             "fieldPath": "id",
@@ -25,6 +25,13 @@
             "columnName": "translation",
             "affinity": "TEXT",
             "notNull": true
+          },
+          {
+            "fieldPath": "trainCount",
+            "columnName": "trainCount",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "0"
           }
         ],
         "primaryKey": {
@@ -37,7 +44,7 @@
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'ea60515f66ae1fc7bc7b24d4c9379168')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '4f50d20bfffa89722b3cfd87ea842c3b')"
     ]
   }
 }

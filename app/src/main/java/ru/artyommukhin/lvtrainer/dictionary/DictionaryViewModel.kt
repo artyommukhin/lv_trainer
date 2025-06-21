@@ -52,4 +52,12 @@ class DictionaryViewModel @Inject constructor(
             _state.update { Success(words) }
         }
     }
+
+    fun resetWordProgress(word: DictionaryWord) {
+        viewModelScope.launch(Dispatchers.IO) {
+            dictionary.resetTrainCount(word.id)
+            val words = dictionary.getAll()
+            _state.update { Success(words) }
+        }
+    }
 }

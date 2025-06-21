@@ -7,11 +7,24 @@ import androidx.room.Query
 
 @Dao
 interface DictionaryWordDao {
+
     @Query("SELECT * FROM word")
     fun getAll(): List<DictionaryWord>
 
-    @Query("SELECT * FROM word ORDER BY RANDOM() LIMIT 1")
-    fun getRandomWord(): DictionaryWord?
+    @Query("SELECT COUNT(*) FROM word")
+    fun getCount(): Int
+
+    @Query("SELECT * FROM word WHERE id = :wordId")
+    fun getById(wordId: Int): DictionaryWord?
+
+    @Query("SELECT * FROM word WHERE trainCount < 5 ORDER BY RANDOM() LIMIT 1")
+    fun getRandomUntrainedWord(): DictionaryWord?
+
+    @Query("UPDATE word SET trainCount = trainCount + 1 WHERE id = :wordId")
+    fun increaseTrainCount(wordId: Int)
+
+    @Query("UPDATE word SET trainCount = 0 WHERE id = :wordId")
+    fun resetTrainCount(wordId: Int)
 
     @Insert
     fun insert(vararg words: DictionaryWord)

@@ -9,4 +9,5 @@ data class DictionaryWord(
     @PrimaryKey(autoGenerate = true) val id: Int = 0,
     @ColumnInfo val word: String,
     @ColumnInfo val translation: String,
+    @ColumnInfo(defaultValue = "0") val trainCount: Int = 0,
 )
