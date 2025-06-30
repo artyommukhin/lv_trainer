@@ -12,23 +12,27 @@ interface DictionaryWordDao {
     fun getAll(): List<DictionaryWord>
 
     @Query("SELECT COUNT(*) FROM word")
-    fun getCount(): Int
+    suspend fun getCount(): Int
 
     @Query("SELECT * FROM word WHERE id = :wordId")
-    fun getById(wordId: Int): DictionaryWord?
+    suspend fun getById(wordId: Int): DictionaryWord?
 
-    @Query("SELECT * FROM word WHERE trainCount < 5 ORDER BY RANDOM() LIMIT 1")
-    fun getRandomUntrainedWord(): DictionaryWord?
+    @Query("SELECT * FROM word WHERE trainCount < $TRAINED_THRESHOLD ORDER BY RANDOM() LIMIT 1")
+    suspend fun getRandomUntrainedWord(): DictionaryWord?
 
     @Query("UPDATE word SET trainCount = trainCount + 1 WHERE id = :wordId")
-    fun increaseTrainCount(wordId: Int)
+    suspend fun increaseTrainCount(wordId: Int)
 
     @Query("UPDATE word SET trainCount = 0 WHERE id = :wordId")
-    fun resetTrainCount(wordId: Int)
+    suspend fun resetTrainCount(wordId: Int)
 
     @Insert
-    fun insert(vararg words: DictionaryWord)
+    suspend fun insert(vararg words: DictionaryWord)
 
     @Delete
-    fun delete(vararg words: DictionaryWord)
+    suspend fun delete(vararg words: DictionaryWord)
+
+    companion object {
+        const val TRAINED_THRESHOLD = 5
+    }
 }
