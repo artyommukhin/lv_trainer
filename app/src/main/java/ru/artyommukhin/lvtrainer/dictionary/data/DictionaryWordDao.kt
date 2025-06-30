@@ -4,12 +4,19 @@ import androidx.room.Dao
 import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.Query
+import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface DictionaryWordDao {
 
     @Query("SELECT * FROM word")
-    fun getAll(): List<DictionaryWord>
+    fun getAll(): Flow<List<DictionaryWord>>
+
+    @Query("SELECT * FROM word WHERE trainCount < $TRAINED_THRESHOLD")
+    fun getAllUntrained(): Flow<List<DictionaryWord>>
+
+    @Query("SELECT * FROM word WHERE trainCount = $TRAINED_THRESHOLD")
+    fun getAllTrained(): Flow<List<DictionaryWord>>
 
     @Query("SELECT COUNT(*) FROM word")
     suspend fun getCount(): Int
