@@ -6,9 +6,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
@@ -29,11 +26,13 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.launch
 import ru.artyommukhin.lvtrainer.dictionary.data.DictionaryWord
+import ru.artyommukhin.lvtrainer.R
 
 enum class DictionaryPageTab(val label: String) {
     UNTRAINED("В процессе"),
@@ -55,7 +54,7 @@ fun DictionaryPage(
                 navigationIcon = {
                     IconButton(onClick = { onNavigateBack() }) {
                         Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            painter = painterResource(R.drawable.arrow_back),
                             contentDescription = "Localized description"
                         )
                     }
@@ -66,7 +65,10 @@ fun DictionaryPage(
             FloatingActionButton(
                 onClick = { openInputDialog = true },
             ) {
-                Icon(Icons.Default.Add, "Add a word")
+                Icon(
+                    painter = painterResource(R.drawable.add),
+                    contentDescription = "Add a word"
+                )
             }
         },
     ) { paddingValues ->
