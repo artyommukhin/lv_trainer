@@ -1,12 +1,15 @@
 package ru.artyommukhin.lvtrainer.dictionary
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import ru.artyommukhin.lvtrainer.dictionary.data.DictionaryWord
@@ -16,7 +19,15 @@ fun DictionaryWordList(
     words: List<DictionaryWord>,
     onResetWord: (word: DictionaryWord) -> Unit,
     onDeleteWord: (word: DictionaryWord) -> Unit,
-    ) {
+    emptyListText: String,
+) {
+    if (words.isEmpty()) {
+        Box(modifier = Modifier.fillMaxSize()) {
+            Text(emptyListText, Modifier.align(Alignment.Center))
+        }
+        return
+    }
+
     val columnState = rememberLazyListState()
 
     LazyColumn(
@@ -25,7 +36,7 @@ fun DictionaryWordList(
             start = 16.dp,
             end = 16.dp,
             top = 24.dp,
-            bottom = 80.dp
+            bottom = 80.dp,
         ),
         verticalArrangement = Arrangement.spacedBy(8.dp),
         state = columnState,

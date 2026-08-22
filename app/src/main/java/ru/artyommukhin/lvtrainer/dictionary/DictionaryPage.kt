@@ -128,12 +128,14 @@ fun DictionaryPage(
                                 s.untrainedWords,
                                 onResetWord = { word -> viewModel.resetWordProgress(word) },
                                 onDeleteWord = { word -> viewModel.removeWord(word) },
+                                emptyListText = "Все слова изучены"
                             )
 
                             DictionaryPageTab.TRAINED -> DictionaryWordList(
                                 s.trainedWords,
                                 onResetWord = { word -> viewModel.resetWordProgress(word) },
                                 onDeleteWord = { word -> viewModel.removeWord(word) },
+                                emptyListText = "Нет изученных слов"
                             )
                         }
                     }
