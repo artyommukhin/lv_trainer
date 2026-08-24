@@ -8,10 +8,12 @@ import androidx.navigation.NavOptions
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.toRoute
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.serialization.Serializable
 import ru.artyommukhin.lvtrainer.dictionary.DictionaryPage
 import ru.artyommukhin.lvtrainer.training.TrainingPage
+import ru.artyommukhin.lvtrainer.training.TrainingType
 import ru.artyommukhin.lvtrainer.ui.theme.LVTrainerTheme
 
 // Navigation routes
@@ -22,7 +24,9 @@ object Main
 object Dictionary
 
 @Serializable
-object Training
+data class Training(
+    val type: TrainingType,
+)
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -38,7 +42,7 @@ class MainActivity : ComponentActivity() {
                     composable<Main> {
                         MainPage(
                             onNavigateToDictionary = { navController.navigate(Dictionary) },
-                            onNavigateToTraining = { navController.navigate(Training) }
+                            onNavigateToTraining = { type -> navController.navigate(Training(type)) },
                         )
                     }
                     composable<Dictionary> {
@@ -46,8 +50,10 @@ class MainActivity : ComponentActivity() {
                             onNavigateBack = { navController.popBackStack() },
                         )
                     }
-                    composable<Training> {
+                    composable<Training> { stackEntry ->
+                        val route = stackEntry.toRoute<Training>()
                         TrainingPage(
+                            trainingType = route.type,
                             onNavigateBack = { navController.popBackStack() },
                             onNavigateToDictionary = {
                                 navController.navigate(
