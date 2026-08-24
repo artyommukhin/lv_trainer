@@ -51,9 +51,12 @@ import ru.artyommukhin.lvtrainer.R
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 fun TrainingPage(
+    trainingType: TrainingType,
     onNavigateBack: () -> Unit,
     onNavigateToDictionary: () -> Unit,
-    viewModel: TrainingViewModel = hiltViewModel(),
+    viewModel: TrainingViewModel = hiltViewModel { factory: TrainingViewModel.Factory ->
+        factory.create(trainingType)
+    },
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val focusRequester = remember { FocusRequester() }
@@ -131,38 +134,54 @@ fun TrainingPage(
 
                     Text(
                         buildAnnotatedString {
-                            append(s.word.word)
+                            val (word, translation) = when (trainingType) {
+                                TrainingType.WORD_TO_TRANSLATION -> Pair(
+                                    s.word.word,
+                                    s.word.translation
+                                )
+
+                                TrainingType.TRANSLATION_TO_WORD -> Pair(
+                                    s.word.translation,
+                                    s.word.word
+                                )
+                            }
+
+                            append(word)
                             append(" - ")
-                            if (!s.isAnswered)
-                                withStyle(style = SpanStyle(color = Color.Gray)) {
-                                    append("???")
+                            when (s.isAnsweredCorrectly) {
+                                null -> {
+                                    withStyle(style = SpanStyle(color = Color.Gray)) {
+                                        append("???")
+                                    }
                                 }
 
-                            if (s.isAnsweredCorrectly == true)
-                                withStyle(
-                                    style = SpanStyle(
-                                        color = Color(76, 175, 80, 255),
-                                    )
-                                ) {
-                                    append(s.word.translation)
+                                true -> {
+                                    withStyle(
+                                        style = SpanStyle(
+                                            color = Color(76, 175, 80, 255),
+                                        )
+                                    ) {
+                                        append(translation)
+                                    }
                                 }
 
-                            if (s.isAnsweredCorrectly == false) {
-                                withStyle(
-                                    style = SpanStyle(
-                                        color = Color(196, 57, 48, 255),
-                                        textDecoration = TextDecoration.LineThrough,
-                                    )
-                                ) {
-                                    append(input)
-                                }
-                                append(" ")
-                                withStyle(
-                                    style = SpanStyle(
-                                        color = Color(76, 175, 80, 255),
-                                    )
-                                ) {
-                                    append(s.word.translation)
+                                false -> {
+                                    withStyle(
+                                        style = SpanStyle(
+                                            color = Color(196, 57, 48, 255),
+                                            textDecoration = TextDecoration.LineThrough,
+                                        )
+                                    ) {
+                                        append(input)
+                                    }
+                                    append(" ")
+                                    withStyle(
+                                        style = SpanStyle(
+                                            color = Color(76, 175, 80, 255),
+                                        )
+                                    ) {
+                                        append(translation)
+                                    }
                                 }
                             }
                         },

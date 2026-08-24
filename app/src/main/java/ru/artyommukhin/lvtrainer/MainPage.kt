@@ -10,12 +10,13 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import ru.artyommukhin.lvtrainer.training.TrainingType
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainPage(
     onNavigateToDictionary: () -> Unit,
-    onNavigateToTraining: () -> Unit,
+    onNavigateToTraining: (type: TrainingType) -> Unit,
 ) {
     Scaffold(
         topBar = {
@@ -35,9 +36,14 @@ fun MainPage(
                 Text("Словарь")
             }
             FilledTonalButton(
-                onClick = { onNavigateToTraining() },
+                onClick = { onNavigateToTraining(TrainingType.WORD_TO_TRANSLATION) },
             ) {
-                Text("Тренировка")
+                Text("Тренировка \"слово-перевод\"")
+            }
+            FilledTonalButton(
+                onClick = { onNavigateToTraining(TrainingType.TRANSLATION_TO_WORD) },
+            ) {
+                Text("Тренировка \"перевод-слово\"")
             }
         }
     }

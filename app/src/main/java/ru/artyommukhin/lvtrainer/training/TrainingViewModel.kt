@@ -2,6 +2,9 @@ package ru.artyommukhin.lvtrainer.training
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedFactory
+import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -10,7 +13,6 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import ru.artyommukhin.lvtrainer.database.AppDatabase
 import ru.artyommukhin.lvtrainer.dictionary.data.DictionaryWord
-import javax.inject.Inject
 
 sealed interface TrainingUiState {
     data object Loading : TrainingUiState
@@ -25,10 +27,16 @@ sealed interface TrainingUiState {
     }
 }
 
-@HiltViewModel
-class TrainingViewModel @Inject constructor(
+@HiltViewModel(assistedFactory = TrainingViewModel.Factory::class)
+class TrainingViewModel @AssistedInject constructor(
     database: AppDatabase,
+    @Assisted val trainingType: TrainingType,
 ) : ViewModel() {
+
+    @AssistedFactory
+    interface Factory {
+        fun create(trainingType: TrainingType): TrainingViewModel
+    }
 
     private val dictionary = database.dictionaryWordsDao()
     private val _state = MutableStateFlow<TrainingUiState>(TrainingUiState.Loading)
@@ -55,7 +63,7 @@ class TrainingViewModel @Inject constructor(
             }
 
             if (wordCount == 1) {
-                _state.update { TrainingUiState.Active(word!!) }
+                _state.update { TrainingUiState.Active(word) }
                 return@launch
             }
 
@@ -67,8 +75,11 @@ class TrainingViewModel @Inject constructor(
         }
     }
 
-    fun answer(word: DictionaryWord, translation: String) {
-        val correctAnswer = word.translation == translation.trim()
+    fun answer(word: DictionaryWord, userInput: String) {
+        val correctAnswer = when (trainingType) {
+            TrainingType.WORD_TO_TRANSLATION -> word.translation == userInput.trim()
+            TrainingType.TRANSLATION_TO_WORD -> word.word == userInput.trim()
+        }
 
         if (!correctAnswer) {
             _state.update {
