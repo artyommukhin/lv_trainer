@@ -1,5 +1,6 @@
 package ru.artyommukhin.lvtrainer.dictionary
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -9,6 +10,10 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Card
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuAnchorType
+import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -26,15 +31,21 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.text.intl.Locale
+import androidx.compose.ui.text.intl.LocaleList
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.TextUnitType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import ru.artyommukhin.lvtrainer.dictionary.data.Language
 
 @Composable
 fun WordInputDialog(
     onDismissRequest: () -> Unit,
     onConfirmation: (word: String, translation: String) -> Unit,
+    viewModel: WordInputViewModel = hiltViewModel(),
 ) {
     var word by rememberSaveable(stateSaver = TextFieldValue.Saver) {
         mutableStateOf(TextFieldValue(""))
@@ -42,10 +53,15 @@ fun WordInputDialog(
     var translation by rememberSaveable(stateSaver = TextFieldValue.Saver) {
         mutableStateOf(TextFieldValue(""))
     }
+
+    // TODO: use MutableInteractionSource instead for tracking focused state
     var isWordFocused by rememberSaveable { mutableStateOf(false) }
     var isTranslationFocused by rememberSaveable { mutableStateOf(false) }
     val wordFocusRequester = remember { FocusRequester() }
     val translationFocusRequester = remember { FocusRequester() }
+
+    val nativeLanguage by viewModel.nativeLanguage.collectAsStateWithLifecycle()
+    var showNativeLanguageDropdown by rememberSaveable { mutableStateOf(false) }
 
     fun isInputValid() = word.text.isNotBlank() && translation.text.isNotBlank()
 
@@ -100,14 +116,30 @@ fun WordInputDialog(
                     singleLine = true,
                     keyboardOptions = KeyboardOptions(
                         imeAction = if (isInputValid()) ImeAction.Done else ImeAction.Previous,
+                        hintLocales = LocaleList(Locale(nativeLanguage.locale))
                     ),
                     keyboardActions = KeyboardActions(
                         onDone = { onSubmit() },
                     ),
+                    trailingIcon = {
+                        Text(
+                            nativeLanguage.symbol,
+                            modifier = Modifier.clickable {
+                                // TODO: navigate to language select page
+                            },
+                        )
+                    }
+                )
+                // TODO: move language selection logic to a separate page
+                LanguageSelectDropdown(
+                    expanded = showNativeLanguageDropdown,
+                    onExpandedChange = { showNativeLanguageDropdown = it },
+                    value = nativeLanguage,
+                    onValueChange = { viewModel.updateNativeLanguage(it) },
+                    allLanguages = viewModel.allLanguages,
                 )
                 Row(
-                    modifier = Modifier
-                        .fillMaxWidth(),
+                    modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.Center,
                 ) {
                     TextButton(
@@ -129,6 +161,47 @@ fun WordInputDialog(
                 if (isWordFocused) wordFocusRequester.requestFocus()
                 if (isTranslationFocused) translationFocusRequester.requestFocus()
                 if (!isWordFocused && !isTranslationFocused) wordFocusRequester.requestFocus()
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun LanguageSelectDropdown(
+    expanded: Boolean,
+    onExpandedChange: (Boolean) -> Unit,
+    value: Language,
+    onValueChange: (Language) -> Unit,
+    allLanguages: List<Language>,
+) {
+    ExposedDropdownMenuBox(
+        expanded = expanded,
+        onExpandedChange = onExpandedChange,
+    ) {
+        OutlinedTextField(
+            label = { Text("Язык") },
+            value = value.toString(),
+            onValueChange = { },
+            readOnly = true,
+            modifier = Modifier
+                .menuAnchor(
+                    type = ExposedDropdownMenuAnchorType.PrimaryNotEditable,
+                    enabled = true,
+                ),
+        )
+        ExposedDropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { onExpandedChange(false) },
+        ) {
+            for (language in allLanguages) {
+                DropdownMenuItem(
+                    onClick = {
+                        onValueChange(language)
+                        onExpandedChange(false)
+                    },
+                    text = { Text(language.toString()) }
+                )
             }
         }
     }
