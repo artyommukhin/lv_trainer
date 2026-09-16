@@ -12,7 +12,8 @@ plugins {
 }
 
 val keystoreProperties = Properties().apply {
-    load(FileInputStream(file("key.properties")))
+    val keystoreFile = file("key.properties")
+    if (keystoreFile.exists()) load(FileInputStream(keystoreFile))
 }
 
 extensions.configure<ApplicationExtension> {
