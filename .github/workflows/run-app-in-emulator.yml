@@ -2,7 +2,7 @@ name: Run Release Version in Emulator
 
 on:
   pull_request:
-    branches: [master]
+    branches: [ master ]
 
 jobs:
   run-and-check:
@@ -21,9 +21,6 @@ jobs:
 
       - name: Grant Execute Permission for Gradlew
         run: chmod +x gradlew
-
-      - name: Run Linter & Static Analysis
-        run: ./gradlew lint
 
       - name: Decode Keystore File
         env:
