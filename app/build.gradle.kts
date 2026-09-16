@@ -1,4 +1,6 @@
 import com.android.build.api.dsl.ApplicationExtension
+import java.io.FileInputStream
+import java.util.Properties
 
 plugins {
     alias(libs.plugins.android.application)
@@ -7,6 +9,10 @@ plugins {
     alias(libs.plugins.ksp)
     alias(libs.plugins.hilt)
     alias(libs.plugins.room)
+}
+
+val keystoreProperties = Properties().apply {
+    load(FileInputStream(file("key.properties")))
 }
 
 extensions.configure<ApplicationExtension> {
@@ -23,13 +29,33 @@ extensions.configure<ApplicationExtension> {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
+    signingConfigs {
+        create("release") {
+            storeFile = providers.environmentVariable("ANDROID_KEYSTORE_PATH")
+                .orElse(keystoreProperties["storeFile"] as String)
+                .map { file(it) }
+                .get()
+
+            storePassword = providers.environmentVariable("ANDROID_KEYSTORE_PASSWORD")
+                .getOrElse(keystoreProperties["storePassword"] as String)
+
+            keyAlias = providers.environmentVariable("ANDROID_KEY_ALIAS")
+                .getOrElse(keystoreProperties["keyAlias"] as String)
+
+            keyPassword = providers.environmentVariable("ANDROID_KEY_PASSWORD")
+                .getOrElse(keystoreProperties["keyPassword"] as String)
+        }
+    }
+
     buildTypes {
         release {
-            isMinifyEnabled = false
+            isMinifyEnabled = true
+            isShrinkResources = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            signingConfig = signingConfigs.getByName("release")
         }
     }
     compileOptions {
@@ -65,6 +91,7 @@ dependencies {
     ksp(libs.hilt.android.compiler)
     ksp(libs.androidx.room.compiler)
     testImplementation(libs.junit)
+    androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(libs.androidx.ui.test.junit4)
