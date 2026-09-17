@@ -45,7 +45,7 @@ jobs:
       - name: Run App on Emulator
         uses: reactivecircus/android-emulator-runner@v2
         with:
-          api-level: 37
+          api-level: 35
           arch: x86_64
           script: |
             echo "Installing APK..."
