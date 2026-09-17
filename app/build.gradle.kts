@@ -1,4 +1,6 @@
 import com.android.build.api.dsl.ApplicationExtension
+import java.io.FileInputStream
+import java.util.Properties
 
 plugins {
     alias(libs.plugins.android.application)
@@ -7,6 +9,11 @@ plugins {
     alias(libs.plugins.ksp)
     alias(libs.plugins.hilt)
     alias(libs.plugins.room)
+}
+
+val keystoreProperties = Properties().apply {
+    val keystoreFile = file("key.properties")
+    if (keystoreFile.exists()) load(FileInputStream(keystoreFile))
 }
 
 extensions.configure<ApplicationExtension> {
@@ -23,13 +30,36 @@ extensions.configure<ApplicationExtension> {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
+    signingConfigs {
+        create("release") {
+            storeFile = providers.environmentVariable("ANDROID_KEYSTORE_PATH")
+                .orElse(provider { keystoreProperties["storeFile"] as String })
+                .map { file(it) }
+                .get()
+
+            storePassword = providers.environmentVariable("ANDROID_KEYSTORE_PASSWORD")
+                .orElse(provider { keystoreProperties["storePassword"] as String })
+                .get()
+
+            keyAlias = providers.environmentVariable("ANDROID_KEY_ALIAS")
+                .orElse(provider { keystoreProperties["keyAlias"] as String })
+                .get()
+
+            keyPassword = providers.environmentVariable("ANDROID_KEY_PASSWORD")
+                .orElse(provider { keystoreProperties["keyPassword"] as String })
+                .get()
+        }
+    }
+
     buildTypes {
         release {
-            isMinifyEnabled = false
+            isMinifyEnabled = true
+            isShrinkResources = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            signingConfig = signingConfigs.getByName("release")
         }
     }
     compileOptions {
@@ -65,6 +95,7 @@ dependencies {
     ksp(libs.hilt.android.compiler)
     ksp(libs.androidx.room.compiler)
     testImplementation(libs.junit)
+    androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(libs.androidx.ui.test.junit4)
