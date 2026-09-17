@@ -33,18 +33,21 @@ extensions.configure<ApplicationExtension> {
     signingConfigs {
         create("release") {
             storeFile = providers.environmentVariable("ANDROID_KEYSTORE_PATH")
-                .orElse(keystoreProperties["storeFile"] as String)
+                .orElse(provider { keystoreProperties["storeFile"] as String })
                 .map { file(it) }
                 .get()
 
             storePassword = providers.environmentVariable("ANDROID_KEYSTORE_PASSWORD")
-                .getOrElse(keystoreProperties["storePassword"] as String)
+                .orElse(provider { keystoreProperties["storePassword"] as String })
+                .get()
 
             keyAlias = providers.environmentVariable("ANDROID_KEY_ALIAS")
-                .getOrElse(keystoreProperties["keyAlias"] as String)
+                .orElse(provider { keystoreProperties["keyAlias"] as String })
+                .get()
 
             keyPassword = providers.environmentVariable("ANDROID_KEY_PASSWORD")
-                .getOrElse(keystoreProperties["keyPassword"] as String)
+                .orElse(provider { keystoreProperties["keyPassword"] as String })
+                .get()
         }
     }
 
