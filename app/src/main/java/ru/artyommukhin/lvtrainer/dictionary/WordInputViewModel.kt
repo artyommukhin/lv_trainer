@@ -39,7 +39,7 @@ class WordInputViewModel @Inject constructor(
 
     fun updateNativeLanguage(language: Language) {
         viewModelScope.launch {
-            dataStore.edit { it[nativeLocaleKey] = language.locale.toLanguageTag() }
+            dataStore.edit { it[nativeLocaleKey] = language.tag }
         }
     }
 

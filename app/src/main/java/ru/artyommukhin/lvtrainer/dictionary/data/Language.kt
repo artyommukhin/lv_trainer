@@ -6,6 +6,7 @@ class Language(
     val locale: Locale,
 ) {
     val symbol: String
+    val tag: String = locale.toLanguageTag()
 
     init {
         if (locale.country.isEmpty() || locale.country.isInt()) {
@@ -16,7 +17,7 @@ class Language(
     }
 
     override fun toString(): String {
-        return "$symbol ${locale.displayLanguage} (${locale.toLanguageTag()})"
+        return "$symbol ${locale.displayLanguage} ($tag)"
     }
 
     private fun String.isInt() = this.toIntOrNull() != null
