@@ -56,6 +56,9 @@ fun WordInputDialog(
     val wordFocusRequester = remember { FocusRequester() }
     val translationFocusRequester = remember { FocusRequester() }
 
+    val wordLanguage by viewModel.wordLanguage.collectAsStateWithLifecycle()
+    var showWordLanguageSelectDialog by rememberSaveable { mutableStateOf(false) }
+
     val nativeLanguage by viewModel.nativeLanguage.collectAsStateWithLifecycle()
     var showNativeLanguageSelectDialog by rememberSaveable { mutableStateOf(false) }
 
@@ -96,7 +99,14 @@ fun WordInputDialog(
                     singleLine = true,
                     keyboardOptions = KeyboardOptions(
                         imeAction = ImeAction.Next,
+                        hintLocales = LocaleList(Locale(wordLanguage.locale))
                     ),
+                    trailingIcon = {
+                        Text(
+                            wordLanguage.symbol,
+                            modifier = Modifier.clickable { showWordLanguageSelectDialog = true },
+                        )
+                    }
                 )
                 OutlinedTextField(
                     modifier = Modifier
@@ -145,6 +155,14 @@ fun WordInputDialog(
                     }
                 }
             }
+
+            if (showWordLanguageSelectDialog)
+                LanguageSelectDialog(
+                    selectedLanguage = wordLanguage,
+                    allLanguages = viewModel.allLanguages,
+                    onDismissRequest = { showWordLanguageSelectDialog = false },
+                    onSelect = { viewModel.updateWordLanguage(it) },
+                )
 
             if (showNativeLanguageSelectDialog)
                 LanguageSelectDialog(

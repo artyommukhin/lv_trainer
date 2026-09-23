@@ -27,6 +27,14 @@ class WordInputViewModel @Inject constructor(
         ConfigurationCompat.getLocales(application.resources.configuration)[0]
             ?: Locale.getDefault()
 
+    val wordLanguage = dataStore.data.mapNotNull { data ->
+        data[wordLocaleKey]?.let { Language(Locale.forLanguageTag(it)) }
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(),
+        initialValue = Language(defaultLocale),
+    )
+
     val nativeLanguage = dataStore.data.mapNotNull { data ->
         data[nativeLocaleKey]?.let { Language(Locale.forLanguageTag(it)) }
     }.stateIn(
@@ -37,6 +45,12 @@ class WordInputViewModel @Inject constructor(
 
     val allLanguages = Locale.getAvailableLocales().map { Language(it) }
 
+    fun updateWordLanguage(language: Language) {
+        viewModelScope.launch {
+            dataStore.edit { it[wordLocaleKey] = language.tag }
+        }
+    }
+
     fun updateNativeLanguage(language: Language) {
         viewModelScope.launch {
             dataStore.edit { it[nativeLocaleKey] = language.tag }
@@ -44,6 +58,7 @@ class WordInputViewModel @Inject constructor(
     }
 
     companion object {
+        val wordLocaleKey = stringPreferencesKey("wordLocale")
         val nativeLocaleKey = stringPreferencesKey("nativeLocale")
     }
 }
