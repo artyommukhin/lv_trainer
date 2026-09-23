@@ -40,7 +40,7 @@ fun LanguageSelectDialog(
     onDismissRequest: () -> Unit,
     onSelect: (Language) -> Unit,
 ) {
-    val selectedLanguageIndex = allLanguages.indexOf(selectedLanguage)
+    val selectedLanguageIndex = allLanguages.indexOf(selectedLanguage).takeIf { it != -1 } ?: 0
     val lazyColumnState =
         rememberLazyListState(initialFirstVisibleItemIndex = selectedLanguageIndex)
 
