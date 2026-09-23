@@ -2,7 +2,7 @@ package ru.artyommukhin.lvtrainer.dictionary.data
 
 import java.util.Locale
 
-class Language(
+data class Language(
     val locale: Locale,
 ) {
     val symbol: String
