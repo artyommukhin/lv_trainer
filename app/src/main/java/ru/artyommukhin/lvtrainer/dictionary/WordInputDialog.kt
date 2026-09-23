@@ -9,12 +9,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.Card
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExposedDropdownMenuAnchorType
-import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -37,9 +33,9 @@ import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.TextUnitType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import ru.artyommukhin.lvtrainer.dictionary.data.Language
 
 @Composable
 fun WordInputDialog(
@@ -61,7 +57,7 @@ fun WordInputDialog(
     val translationFocusRequester = remember { FocusRequester() }
 
     val nativeLanguage by viewModel.nativeLanguage.collectAsStateWithLifecycle()
-    var showNativeLanguageDropdown by rememberSaveable { mutableStateOf(false) }
+    var showNativeLanguageSelectDialog by rememberSaveable { mutableStateOf(false) }
 
     fun isInputValid() = word.text.isNotBlank() && translation.text.isNotBlank()
 
@@ -71,10 +67,11 @@ fun WordInputDialog(
         onDismissRequest()
     }
 
-    Dialog(onDismissRequest = { onDismissRequest() }) {
-        Card(
-            shape = RoundedCornerShape(16.dp),
-        ) {
+    Dialog(
+        onDismissRequest,
+        properties = DialogProperties(dismissOnClickOutside = false),
+    ) {
+        Surface(shape = RoundedCornerShape(16.dp)) {
             Column(
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.CenterHorizontally,
@@ -124,20 +121,11 @@ fun WordInputDialog(
                     trailingIcon = {
                         Text(
                             nativeLanguage.symbol,
-                            modifier = Modifier.clickable {
-                                // TODO: navigate to language select page
-                            },
+                            modifier = Modifier.clickable { showNativeLanguageSelectDialog = true },
                         )
-                    }
+                    },
                 )
-                // TODO: move language selection logic to a separate page
-                LanguageSelectDropdown(
-                    expanded = showNativeLanguageDropdown,
-                    onExpandedChange = { showNativeLanguageDropdown = it },
-                    value = nativeLanguage,
-                    onValueChange = { viewModel.updateNativeLanguage(it) },
-                    allLanguages = viewModel.allLanguages,
-                )
+
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.Center,
@@ -157,51 +145,19 @@ fun WordInputDialog(
                     }
                 }
             }
+
+            if (showNativeLanguageSelectDialog)
+                LanguageSelectDialog(
+                    selectedLanguage = nativeLanguage,
+                    allLanguages = viewModel.allLanguages,
+                    onDismissRequest = { showNativeLanguageSelectDialog = false },
+                    onSelect = { viewModel.updateNativeLanguage(it) },
+                )
+
             LaunchedEffect(1) {
                 if (isWordFocused) wordFocusRequester.requestFocus()
                 if (isTranslationFocused) translationFocusRequester.requestFocus()
                 if (!isWordFocused && !isTranslationFocused) wordFocusRequester.requestFocus()
-            }
-        }
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun LanguageSelectDropdown(
-    expanded: Boolean,
-    onExpandedChange: (Boolean) -> Unit,
-    value: Language,
-    onValueChange: (Language) -> Unit,
-    allLanguages: List<Language>,
-) {
-    ExposedDropdownMenuBox(
-        expanded = expanded,
-        onExpandedChange = onExpandedChange,
-    ) {
-        OutlinedTextField(
-            label = { Text("Язык") },
-            value = value.toString(),
-            onValueChange = { },
-            readOnly = true,
-            modifier = Modifier
-                .menuAnchor(
-                    type = ExposedDropdownMenuAnchorType.PrimaryNotEditable,
-                    enabled = true,
-                ),
-        )
-        ExposedDropdownMenu(
-            expanded = expanded,
-            onDismissRequest = { onExpandedChange(false) },
-        ) {
-            for (language in allLanguages) {
-                DropdownMenuItem(
-                    onClick = {
-                        onValueChange(language)
-                        onExpandedChange(false)
-                    },
-                    text = { Text(language.toString()) }
-                )
             }
         }
     }
