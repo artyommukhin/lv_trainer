@@ -18,33 +18,29 @@ fun MainPage(
     onNavigateToDictionary: () -> Unit,
     onNavigateToTraining: (type: TrainingType) -> Unit,
 ) {
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("LV Trainer") },
-            )
-        },
-    ) { paddingValues ->
-        Column(
-            Modifier
-                .padding(paddingValues)
-                .padding(horizontal = 16.dp, vertical = 24.dp)
-        ) {
-            FilledTonalButton(
-                onClick = { onNavigateToDictionary() },
-            ) {
-                Text("Словарь")
-            }
-            FilledTonalButton(
-                onClick = { onNavigateToTraining(TrainingType.WORD_TO_TRANSLATION) },
-            ) {
-                Text("Тренировка \"слово-перевод\"")
-            }
-            FilledTonalButton(
-                onClick = { onNavigateToTraining(TrainingType.TRANSLATION_TO_WORD) },
-            ) {
-                Text("Тренировка \"перевод-слово\"")
-            }
-        }
+  Scaffold(
+      topBar = {
+        TopAppBar(
+            title = { Text("LV Trainer") },
+        )
+      },
+  ) { paddingValues ->
+    Column(Modifier.padding(paddingValues).padding(horizontal = 16.dp, vertical = 24.dp)) {
+      FilledTonalButton(
+          onClick = { onNavigateToDictionary() },
+      ) {
+        Text("Словарь")
+      }
+      FilledTonalButton(
+          onClick = { onNavigateToTraining(TrainingType.WORD_TO_TRANSLATION) },
+      ) {
+        Text("Тренировка \"слово-перевод\"")
+      }
+      FilledTonalButton(
+          onClick = { onNavigateToTraining(TrainingType.TRANSLATION_TO_WORD) },
+      ) {
+        Text("Тренировка \"перевод-слово\"")
+      }
     }
+  }
 }

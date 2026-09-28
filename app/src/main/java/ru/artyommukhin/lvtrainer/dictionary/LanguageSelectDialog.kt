@@ -40,69 +40,65 @@ fun LanguageSelectDialog(
     onDismissRequest: () -> Unit,
     onSelect: (Language) -> Unit,
 ) {
-    val selectedLanguageIndex = allLanguages.indexOf(selectedLanguage).takeIf { it != -1 } ?: 0
-    val lazyColumnState =
-        rememberLazyListState(initialFirstVisibleItemIndex = selectedLanguageIndex)
+  val selectedLanguageIndex = allLanguages.indexOf(selectedLanguage).takeIf { it != -1 } ?: 0
+  val lazyColumnState = rememberLazyListState(initialFirstVisibleItemIndex = selectedLanguageIndex)
 
-    var inputValue by rememberSaveable { mutableStateOf("") }
-    var filteredLanguages by rememberSaveable { mutableStateOf(allLanguages) }
+  var inputValue by rememberSaveable { mutableStateOf("") }
+  var filteredLanguages by rememberSaveable { mutableStateOf(allLanguages) }
 
-    val inputFocusRequester = remember { FocusRequester() }
+  val inputFocusRequester = remember { FocusRequester() }
 
-    BasicAlertDialog(
-        onDismissRequest,
-        properties = DialogProperties(),
+  BasicAlertDialog(
+      onDismissRequest,
+      properties = DialogProperties(),
+  ) {
+    Surface(
+        modifier = Modifier.padding(vertical = 16.dp),
+        shape = RoundedCornerShape(16.dp),
     ) {
-        Surface(
-            modifier = Modifier.padding(vertical = 16.dp),
-            shape = RoundedCornerShape(16.dp),
-        ) {
-            Column {
-                TextField(
-                    modifier = Modifier.fillMaxWidth().focusRequester(inputFocusRequester),
-                    value = inputValue,
-                    onValueChange = { value ->
-                        inputValue = value
-                        filteredLanguages = allLanguages.filter { language ->
-                            val words =
-                                language.locale.displayLanguage
-                                    .lowercase()
-                                    .split(" ", "-")
-                                    .map(String::trim)
+      Column {
+        TextField(
+            modifier = Modifier.fillMaxWidth().focusRequester(inputFocusRequester),
+            value = inputValue,
+            onValueChange = { value ->
+              inputValue = value
+              filteredLanguages = allLanguages.filter { language ->
+                val words =
+                    language.locale.displayLanguage.lowercase().split(" ", "-").map(String::trim)
 
-                            words.any { it.startsWith(value) }
-                        }
-                    },
-                    singleLine = true,
-                    leadingIcon = {
-                        Icon(
-                            painter = painterResource(R.drawable.search),
-                            contentDescription = "Search language",
-                        )
-                    },
-                )
+                words.any { it.startsWith(value) }
+              }
+            },
+            singleLine = true,
+            leadingIcon = {
+              Icon(
+                  painter = painterResource(R.drawable.search),
+                  contentDescription = "Search language",
+              )
+            },
+        )
 
-                LazyColumn(state = lazyColumnState) {
-                    items(filteredLanguages) { language ->
-                        ListItem(
-                            modifier =
-                                Modifier.clickable {
-                                    onSelect(language)
-                                    onDismissRequest()
-                                },
-                            leadingContent = {
-                                Text(language.symbol, modifier = Modifier.width(36.dp))
-                            },
-                            headlineContent = { Text(language.locale.displayLanguage) },
-                            trailingContent = { Text(language.tag) },
-                        )
-                    }
-                }
-            }
+        LazyColumn(state = lazyColumnState) {
+          items(filteredLanguages) { language ->
+            ListItem(
+                modifier =
+                    Modifier.clickable {
+                      onSelect(language)
+                      onDismissRequest()
+                    },
+                leadingContent = {
+                  Text(language.symbol, modifier = Modifier.width(36.dp))
+                },
+                headlineContent = { Text(language.locale.displayLanguage) },
+                trailingContent = { Text(language.tag) },
+            )
+          }
         }
+      }
     }
+  }
 
-    LaunchedEffect(1) {
-        inputFocusRequester.requestFocus()
-    }
+  LaunchedEffect(1) {
+    inputFocusRequester.requestFocus()
+  }
 }

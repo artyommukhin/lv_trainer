@@ -43,140 +43,143 @@ fun WordInputDialog(
     onConfirmation: (word: String, translation: String) -> Unit,
     viewModel: WordInputViewModel = hiltViewModel(),
 ) {
-    var word by rememberSaveable(stateSaver = TextFieldValue.Saver) {
+  var word by
+      rememberSaveable(stateSaver = TextFieldValue.Saver) {
         mutableStateOf(TextFieldValue(""))
-    }
-    var translation by rememberSaveable(stateSaver = TextFieldValue.Saver) {
+      }
+  var translation by
+      rememberSaveable(stateSaver = TextFieldValue.Saver) {
         mutableStateOf(TextFieldValue(""))
-    }
+      }
 
-    // TODO: use MutableInteractionSource instead for tracking focused state
-    var isWordFocused by rememberSaveable { mutableStateOf(false) }
-    var isTranslationFocused by rememberSaveable { mutableStateOf(false) }
-    val wordFocusRequester = remember { FocusRequester() }
-    val translationFocusRequester = remember { FocusRequester() }
+  // TODO: use MutableInteractionSource instead for tracking focused state
+  var isWordFocused by rememberSaveable { mutableStateOf(false) }
+  var isTranslationFocused by rememberSaveable { mutableStateOf(false) }
+  val wordFocusRequester = remember { FocusRequester() }
+  val translationFocusRequester = remember { FocusRequester() }
 
-    val wordLanguage by viewModel.wordLanguage.collectAsStateWithLifecycle()
-    var showWordLanguageSelectDialog by rememberSaveable { mutableStateOf(false) }
+  val wordLanguage by viewModel.wordLanguage.collectAsStateWithLifecycle()
+  var showWordLanguageSelectDialog by rememberSaveable { mutableStateOf(false) }
 
-    val nativeLanguage by viewModel.nativeLanguage.collectAsStateWithLifecycle()
-    var showNativeLanguageSelectDialog by rememberSaveable { mutableStateOf(false) }
+  val nativeLanguage by viewModel.nativeLanguage.collectAsStateWithLifecycle()
+  var showNativeLanguageSelectDialog by rememberSaveable { mutableStateOf(false) }
 
-    fun isInputValid() = word.text.isNotBlank() && translation.text.isNotBlank()
+  fun isInputValid() = word.text.isNotBlank() && translation.text.isNotBlank()
 
-    fun onSubmit() {
-        if (!isInputValid()) return
-        onConfirmation(word.text.trim(), translation.text.trim())
-        onDismissRequest()
-    }
+  fun onSubmit() {
+    if (!isInputValid()) return
+    onConfirmation(word.text.trim(), translation.text.trim())
+    onDismissRequest()
+  }
 
-    Dialog(
-        onDismissRequest,
-        properties = DialogProperties(dismissOnClickOutside = false),
-    ) {
-        Surface(shape = RoundedCornerShape(16.dp)) {
-            Column(
-                verticalArrangement = Arrangement.Center,
-                horizontalAlignment = Alignment.CenterHorizontally,
-            ) {
-                Text(
-                    text = "Добавить слово",
-                    fontSize = TextUnit(24f, TextUnitType.Sp),
-                    modifier = Modifier.padding(16.dp),
-                )
-                OutlinedTextField(
-                    modifier = Modifier
-                        .focusRequester(wordFocusRequester)
-                        .onFocusChanged {
-                            if (it.isFocused) {
-                                isWordFocused = true
-                                isTranslationFocused = false
-                            }
-                        },
-                    value = word,
-                    onValueChange = { word = it },
-                    label = { Text("Слово") },
-                    singleLine = true,
-                    keyboardOptions = KeyboardOptions(
-                        imeAction = ImeAction.Next,
-                        hintLocales = LocaleList(Locale(wordLanguage.locale))
-                    ),
-                    trailingIcon = {
-                        Text(
-                            wordLanguage.symbol,
-                            modifier = Modifier.clickable { showWordLanguageSelectDialog = true },
-                        )
-                    }
-                )
-                OutlinedTextField(
-                    modifier = Modifier
-                        .focusRequester(translationFocusRequester)
-                        .onFocusChanged {
-                            if (it.isFocused) {
-                                isTranslationFocused = true
-                                isWordFocused = false
-                            }
-                        },
-                    value = translation,
-                    onValueChange = { translation = it },
-                    label = { Text("Перевод") },
-                    singleLine = true,
-                    keyboardOptions = KeyboardOptions(
-                        imeAction = if (isInputValid()) ImeAction.Done else ImeAction.Previous,
-                        hintLocales = LocaleList(Locale(nativeLanguage.locale))
-                    ),
-                    keyboardActions = KeyboardActions(
-                        onDone = { onSubmit() },
-                    ),
-                    trailingIcon = {
-                        Text(
-                            nativeLanguage.symbol,
-                            modifier = Modifier.clickable { showNativeLanguageSelectDialog = true },
-                        )
-                    },
-                )
+  Dialog(
+      onDismissRequest,
+      properties = DialogProperties(dismissOnClickOutside = false),
+  ) {
+    Surface(shape = RoundedCornerShape(16.dp)) {
+      Column(
+          verticalArrangement = Arrangement.Center,
+          horizontalAlignment = Alignment.CenterHorizontally,
+      ) {
+        Text(
+            text = "Добавить слово",
+            fontSize = TextUnit(24f, TextUnitType.Sp),
+            modifier = Modifier.padding(16.dp),
+        )
+        OutlinedTextField(
+            modifier =
+                Modifier.focusRequester(wordFocusRequester).onFocusChanged {
+                  if (it.isFocused) {
+                    isWordFocused = true
+                    isTranslationFocused = false
+                  }
+                },
+            value = word,
+            onValueChange = { word = it },
+            label = { Text("Слово") },
+            singleLine = true,
+            keyboardOptions =
+                KeyboardOptions(
+                    imeAction = ImeAction.Next,
+                    hintLocales = LocaleList(Locale(wordLanguage.locale)),
+                ),
+            trailingIcon = {
+              Text(
+                  wordLanguage.symbol,
+                  modifier = Modifier.clickable { showWordLanguageSelectDialog = true },
+              )
+            },
+        )
+        OutlinedTextField(
+            modifier =
+                Modifier.focusRequester(translationFocusRequester).onFocusChanged {
+                  if (it.isFocused) {
+                    isTranslationFocused = true
+                    isWordFocused = false
+                  }
+                },
+            value = translation,
+            onValueChange = { translation = it },
+            label = { Text("Перевод") },
+            singleLine = true,
+            keyboardOptions =
+                KeyboardOptions(
+                    imeAction = if (isInputValid()) ImeAction.Done else ImeAction.Previous,
+                    hintLocales = LocaleList(Locale(nativeLanguage.locale)),
+                ),
+            keyboardActions =
+                KeyboardActions(
+                    onDone = { onSubmit() },
+                ),
+            trailingIcon = {
+              Text(
+                  nativeLanguage.symbol,
+                  modifier = Modifier.clickable { showNativeLanguageSelectDialog = true },
+              )
+            },
+        )
 
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.Center,
-                ) {
-                    TextButton(
-                        onClick = { onDismissRequest() },
-                        modifier = Modifier.padding(8.dp),
-                    ) {
-                        Text("Отмена")
-                    }
-                    TextButton(
-                        enabled = isInputValid(),
-                        onClick = { onSubmit() },
-                        modifier = Modifier.padding(8.dp),
-                    ) {
-                        Text("Ок")
-                    }
-                }
-            }
-
-            if (showWordLanguageSelectDialog)
-                LanguageSelectDialog(
-                    selectedLanguage = wordLanguage,
-                    allLanguages = viewModel.allLanguages,
-                    onDismissRequest = { showWordLanguageSelectDialog = false },
-                    onSelect = { viewModel.updateWordLanguage(it) },
-                )
-
-            if (showNativeLanguageSelectDialog)
-                LanguageSelectDialog(
-                    selectedLanguage = nativeLanguage,
-                    allLanguages = viewModel.allLanguages,
-                    onDismissRequest = { showNativeLanguageSelectDialog = false },
-                    onSelect = { viewModel.updateNativeLanguage(it) },
-                )
-
-            LaunchedEffect(1) {
-                if (isWordFocused) wordFocusRequester.requestFocus()
-                if (isTranslationFocused) translationFocusRequester.requestFocus()
-                if (!isWordFocused && !isTranslationFocused) wordFocusRequester.requestFocus()
-            }
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.Center,
+        ) {
+          TextButton(
+              onClick = { onDismissRequest() },
+              modifier = Modifier.padding(8.dp),
+          ) {
+            Text("Отмена")
+          }
+          TextButton(
+              enabled = isInputValid(),
+              onClick = { onSubmit() },
+              modifier = Modifier.padding(8.dp),
+          ) {
+            Text("Ок")
+          }
         }
+      }
+
+      if (showWordLanguageSelectDialog)
+          LanguageSelectDialog(
+              selectedLanguage = wordLanguage,
+              allLanguages = viewModel.allLanguages,
+              onDismissRequest = { showWordLanguageSelectDialog = false },
+              onSelect = { viewModel.updateWordLanguage(it) },
+          )
+
+      if (showNativeLanguageSelectDialog)
+          LanguageSelectDialog(
+              selectedLanguage = nativeLanguage,
+              allLanguages = viewModel.allLanguages,
+              onDismissRequest = { showNativeLanguageSelectDialog = false },
+              onSelect = { viewModel.updateNativeLanguage(it) },
+          )
+
+      LaunchedEffect(1) {
+        if (isWordFocused) wordFocusRequester.requestFocus()
+        if (isTranslationFocused) translationFocusRequester.requestFocus()
+        if (!isWordFocused && !isTranslationFocused) wordFocusRequester.requestFocus()
+      }
     }
+  }
 }

@@ -18,47 +18,54 @@ import java.util.Locale
 import javax.inject.Inject
 
 @HiltViewModel
-class WordInputViewModel @Inject constructor(
+class WordInputViewModel
+@Inject
+constructor(
     application: Application,
     private val dataStore: DataStore<Preferences>,
 ) : ViewModel() {
 
-    private val defaultLocale =
-        ConfigurationCompat.getLocales(application.resources.configuration)[0]
-            ?: Locale.getDefault()
+  private val defaultLocale =
+      ConfigurationCompat.getLocales(application.resources.configuration)[0] ?: Locale.getDefault()
 
-    val wordLanguage = dataStore.data.mapNotNull { data ->
-        data[wordLocaleKey]?.let { Language(Locale.forLanguageTag(it)) }
-    }.stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(),
-        initialValue = Language(defaultLocale),
-    )
+  val wordLanguage =
+      dataStore.data
+          .mapNotNull { data ->
+            data[wordLocaleKey]?.let { Language(Locale.forLanguageTag(it)) }
+          }
+          .stateIn(
+              scope = viewModelScope,
+              started = SharingStarted.WhileSubscribed(),
+              initialValue = Language(defaultLocale),
+          )
 
-    val nativeLanguage = dataStore.data.mapNotNull { data ->
-        data[nativeLocaleKey]?.let { Language(Locale.forLanguageTag(it)) }
-    }.stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(),
-        initialValue = Language(defaultLocale),
-    )
+  val nativeLanguage =
+      dataStore.data
+          .mapNotNull { data ->
+            data[nativeLocaleKey]?.let { Language(Locale.forLanguageTag(it)) }
+          }
+          .stateIn(
+              scope = viewModelScope,
+              started = SharingStarted.WhileSubscribed(),
+              initialValue = Language(defaultLocale),
+          )
 
-    val allLanguages = Locale.getAvailableLocales().map { Language(it) }
+  val allLanguages = Locale.getAvailableLocales().map { Language(it) }
 
-    fun updateWordLanguage(language: Language) {
-        viewModelScope.launch {
-            dataStore.edit { it[wordLocaleKey] = language.tag }
-        }
+  fun updateWordLanguage(language: Language) {
+    viewModelScope.launch {
+      dataStore.edit { it[wordLocaleKey] = language.tag }
     }
+  }
 
-    fun updateNativeLanguage(language: Language) {
-        viewModelScope.launch {
-            dataStore.edit { it[nativeLocaleKey] = language.tag }
-        }
+  fun updateNativeLanguage(language: Language) {
+    viewModelScope.launch {
+      dataStore.edit { it[nativeLocaleKey] = language.tag }
     }
+  }
 
-    companion object {
-        val wordLocaleKey = stringPreferencesKey("wordLocale")
-        val nativeLocaleKey = stringPreferencesKey("nativeLocale")
-    }
+  companion object {
+    val wordLocaleKey = stringPreferencesKey("wordLocale")
+    val nativeLocaleKey = stringPreferencesKey("nativeLocale")
+  }
 }

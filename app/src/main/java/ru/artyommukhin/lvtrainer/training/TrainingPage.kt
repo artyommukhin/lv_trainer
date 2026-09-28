@@ -55,192 +55,189 @@ fun TrainingPage(
     onNavigateBack: () -> Unit,
     onNavigateToDictionary: () -> Unit,
     viewModel: TrainingViewModel = hiltViewModel { factory: TrainingViewModel.Factory ->
-        factory.create(trainingType)
+      factory.create(trainingType)
     },
 ) {
-    val state by viewModel.state.collectAsStateWithLifecycle()
-    val focusRequester = remember { FocusRequester() }
+  val state by viewModel.state.collectAsStateWithLifecycle()
+  val focusRequester = remember { FocusRequester() }
 
-    Scaffold(
-        Modifier
-            .imePadding()
-            .imeNestedScroll(),
-        topBar = {
-            TopAppBar(
-                navigationIcon = {
-                    IconButton(onClick = { onNavigateBack() }) {
-                        Icon(
-                            painter = painterResource(R.drawable.arrow_back),
-                            contentDescription = "Localized description"
-                        )
-                    }
-                },
-                title = { Text("Тренировка") })
-        },
-    ) { paddingValues ->
-        Column(
-            Modifier
-                .padding(paddingValues)
-                .padding(top = 24.dp)
-                .fillMaxSize()
-                .verticalScroll(rememberScrollState()),
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
-            when (val s = state) {
-                TrainingUiState.Loading -> CircularProgressIndicator()
-                TrainingUiState.NoWords -> {
-                    Text(
-                        "В словаре ещё нет слов",
-                        Modifier.padding(horizontal = 16.dp),
-                        textAlign = TextAlign.Center,
-                    )
+  Scaffold(
+      Modifier.imePadding().imeNestedScroll(),
+      topBar = {
+        TopAppBar(
+            navigationIcon = {
+              IconButton(onClick = { onNavigateBack() }) {
+                Icon(
+                    painter = painterResource(R.drawable.arrow_back),
+                    contentDescription = "Localized description",
+                )
+              }
+            },
+            title = { Text("Тренировка") },
+        )
+      },
+  ) { paddingValues ->
+    Column(
+        Modifier.padding(paddingValues)
+            .padding(top = 24.dp)
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState()),
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+      when (val s = state) {
+        TrainingUiState.Loading -> CircularProgressIndicator()
+        TrainingUiState.NoWords -> {
+          Text(
+              "В словаре ещё нет слов",
+              Modifier.padding(horizontal = 16.dp),
+              textAlign = TextAlign.Center,
+          )
 
-                    Spacer(Modifier.height(16.dp))
+          Spacer(Modifier.height(16.dp))
 
-                    FilledTonalButton(
-                        onClick = { onNavigateToDictionary() }
-                    ) {
-                        Text("Добавить")
-                    }
-                }
-
-                TrainingUiState.NoUntrainedWords -> {
-                    Text(
-                        "Все слова уже изучены",
-                        Modifier.padding(horizontal = 16.dp),
-                        textAlign = TextAlign.Center,
-                    )
-
-                    Spacer(Modifier.height(16.dp))
-
-                    FilledTonalButton(
-                        onClick = { onNavigateToDictionary() }
-                    ) {
-                        Text("Добавить")
-                    }
-                }
-
-                is TrainingUiState.Active -> {
-                    var input by rememberSaveable { mutableStateOf("") }
-
-                    Text(
-                        "Слово изучено на ${s.word.trainCount * 20}%",
-                        Modifier
-                            .align(Alignment.End)
-                            .padding(horizontal = 16.dp),
-                    )
-
-                    Spacer(Modifier.height(32.dp))
-
-                    Text(
-                        buildAnnotatedString {
-                            val (word, translation) = when (trainingType) {
-                                TrainingType.WORD_TO_TRANSLATION -> Pair(
-                                    s.word.word,
-                                    s.word.translation
-                                )
-
-                                TrainingType.TRANSLATION_TO_WORD -> Pair(
-                                    s.word.translation,
-                                    s.word.word
-                                )
-                            }
-
-                            append(word)
-                            append(" - ")
-                            when (s.isAnsweredCorrectly) {
-                                null -> {
-                                    withStyle(style = SpanStyle(color = Color.Gray)) {
-                                        append("???")
-                                    }
-                                }
-
-                                true -> {
-                                    withStyle(
-                                        style = SpanStyle(
-                                            color = Color(76, 175, 80, 255),
-                                        )
-                                    ) {
-                                        append(translation)
-                                    }
-                                }
-
-                                false -> {
-                                    withStyle(
-                                        style = SpanStyle(
-                                            color = Color(196, 57, 48, 255),
-                                            textDecoration = TextDecoration.LineThrough,
-                                        )
-                                    ) {
-                                        append(input)
-                                    }
-                                    append(" ")
-                                    withStyle(
-                                        style = SpanStyle(
-                                            color = Color(76, 175, 80, 255),
-                                        )
-                                    ) {
-                                        append(translation)
-                                    }
-                                }
-                            }
-                        },
-                        fontSize = 24.sp,
-                        fontWeight = FontWeight.Bold,
-                    )
-
-                    Spacer(Modifier.weight(1f))
-
-                    TextField(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .focusRequester(focusRequester),
-                        value = input,
-                        onValueChange = { if (!s.isAnswered) input = it },
-                        trailingIcon = {
-                            if (input.trim() == "") return@TextField
-
-                            if (s.isAnswered)
-                                IconButton(
-                                    onClick = {
-                                        input = ""
-                                        viewModel.restart()
-                                    },
-                                ) {
-                                    Icon(
-                                        painter = painterResource(R.drawable.arrow_forward),
-                                        contentDescription = "Next word",
-                                    )
-                                }
-                            else
-                                IconButton(onClick = { viewModel.answer(s.word, input) }) {
-                                    Icon(
-                                        painter = painterResource(R.drawable.send),
-                                        contentDescription = "Send the word",
-                                    )
-                                }
-                        },
-                        keyboardOptions = KeyboardOptions(
-                            imeAction =
-                                if (input.trim() == "") ImeAction.None
-                                else if (s.isAnswered) ImeAction.Next
-                                else ImeAction.Done,
-                        ),
-                        keyboardActions = KeyboardActions(
-                            onDone = { viewModel.answer(s.word, input) },
-                            onNext = {
-                                input = ""
-                                viewModel.restart()
-                            },
-                        ),
-                        singleLine = true,
-                    )
-
-                    LaunchedEffect(1) {
-                        focusRequester.requestFocus()
-                    }
-                }
-            }
+          FilledTonalButton(onClick = { onNavigateToDictionary() }) {
+            Text("Добавить")
+          }
         }
+
+        TrainingUiState.NoUntrainedWords -> {
+          Text(
+              "Все слова уже изучены",
+              Modifier.padding(horizontal = 16.dp),
+              textAlign = TextAlign.Center,
+          )
+
+          Spacer(Modifier.height(16.dp))
+
+          FilledTonalButton(onClick = { onNavigateToDictionary() }) {
+            Text("Добавить")
+          }
+        }
+
+        is TrainingUiState.Active -> {
+          var input by rememberSaveable { mutableStateOf("") }
+
+          Text(
+              "Слово изучено на ${s.word.trainCount * 20}%",
+              Modifier.align(Alignment.End).padding(horizontal = 16.dp),
+          )
+
+          Spacer(Modifier.height(32.dp))
+
+          Text(
+              buildAnnotatedString {
+                val (word, translation) =
+                    when (trainingType) {
+                      TrainingType.WORD_TO_TRANSLATION ->
+                          Pair(
+                              s.word.word,
+                              s.word.translation,
+                          )
+
+                      TrainingType.TRANSLATION_TO_WORD ->
+                          Pair(
+                              s.word.translation,
+                              s.word.word,
+                          )
+                    }
+
+                append(word)
+                append(" - ")
+                when (s.isAnsweredCorrectly) {
+                  null -> {
+                    withStyle(style = SpanStyle(color = Color.Gray)) {
+                      append("???")
+                    }
+                  }
+
+                  true -> {
+                    withStyle(
+                        style =
+                            SpanStyle(
+                                color = Color(76, 175, 80, 255),
+                            )
+                    ) {
+                      append(translation)
+                    }
+                  }
+
+                  false -> {
+                    withStyle(
+                        style =
+                            SpanStyle(
+                                color = Color(196, 57, 48, 255),
+                                textDecoration = TextDecoration.LineThrough,
+                            )
+                    ) {
+                      append(input)
+                    }
+                    append(" ")
+                    withStyle(
+                        style =
+                            SpanStyle(
+                                color = Color(76, 175, 80, 255),
+                            )
+                    ) {
+                      append(translation)
+                    }
+                  }
+                }
+              },
+              fontSize = 24.sp,
+              fontWeight = FontWeight.Bold,
+          )
+
+          Spacer(Modifier.weight(1f))
+
+          TextField(
+              modifier = Modifier.fillMaxWidth().focusRequester(focusRequester),
+              value = input,
+              onValueChange = { if (!s.isAnswered) input = it },
+              trailingIcon = {
+                if (input.trim() == "") return@TextField
+
+                if (s.isAnswered)
+                    IconButton(
+                        onClick = {
+                          input = ""
+                          viewModel.restart()
+                        },
+                    ) {
+                      Icon(
+                          painter = painterResource(R.drawable.arrow_forward),
+                          contentDescription = "Next word",
+                      )
+                    }
+                else
+                    IconButton(onClick = { viewModel.answer(s.word, input) }) {
+                      Icon(
+                          painter = painterResource(R.drawable.send),
+                          contentDescription = "Send the word",
+                      )
+                    }
+              },
+              keyboardOptions =
+                  KeyboardOptions(
+                      imeAction =
+                          if (input.trim() == "") ImeAction.None
+                          else if (s.isAnswered) ImeAction.Next else ImeAction.Done,
+                  ),
+              keyboardActions =
+                  KeyboardActions(
+                      onDone = { viewModel.answer(s.word, input) },
+                      onNext = {
+                        input = ""
+                        viewModel.restart()
+                      },
+                  ),
+              singleLine = true,
+          )
+
+          LaunchedEffect(1) {
+            focusRequester.requestFocus()
+          }
+        }
+      }
     }
+  }
 }

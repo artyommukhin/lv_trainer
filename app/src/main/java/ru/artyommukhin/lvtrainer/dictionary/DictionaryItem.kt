@@ -22,38 +22,31 @@ fun DictionaryItem(
     onReset: () -> Unit,
     onDelete: () -> Unit,
 ) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Text(
-            modifier = Modifier
-                .padding(end = 8.dp)
-                .weight(1f),
-            fontSize = 24.sp,
-            text = "${word.word} - ${word.translation}",
-        )
+  Row(
+      modifier = Modifier.fillMaxWidth(),
+      horizontalArrangement = Arrangement.SpaceBetween,
+      verticalAlignment = Alignment.CenterVertically,
+  ) {
+    Text(
+        modifier = Modifier.padding(end = 8.dp).weight(1f),
+        fontSize = 24.sp,
+        text = "${word.word} - ${word.translation}",
+    )
 
-        Text("${word.trainCount * 20}%")
+    Text("${word.trainCount * 20}%")
 
-        IconButton(
-            onClick = { onReset() }
-        ) {
-            Icon(
-                painterResource(id = R.drawable.refresh),
-                contentDescription = "Reset word progress"
-            )
-        }
-
-        IconButton(
-            onClick = { onDelete() }
-        ) {
-            Icon(
-                painter = painterResource(id = R.drawable.delete),
-                contentDescription = "Delete a word"
-            )
-        }
+    IconButton(onClick = { onReset() }) {
+      Icon(
+          painterResource(id = R.drawable.refresh),
+          contentDescription = "Reset word progress",
+      )
     }
+
+    IconButton(onClick = { onDelete() }) {
+      Icon(
+          painter = painterResource(id = R.drawable.delete),
+          contentDescription = "Delete a word",
+      )
+    }
+  }
 }
