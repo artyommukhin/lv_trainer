@@ -1,7 +1,5 @@
 package ru.artyommukhin.lvtrainer.dictionary
 
-import android.app.Application
-import androidx.core.os.ConfigurationCompat
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
@@ -13,20 +11,19 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import ru.artyommukhin.lvtrainer.di.LanguageModule
 import ru.artyommukhin.lvtrainer.dictionary.data.Language
 import java.util.Locale
 import javax.inject.Inject
+import javax.inject.Named
 
 @HiltViewModel
 class WordInputViewModel
 @Inject
 constructor(
-    application: Application,
+    @Named(LanguageModule.DEFAULT_LOCALE) private val defaultLocale: Locale,
     private val dataStore: DataStore<Preferences>,
 ) : ViewModel() {
-
-  private val defaultLocale =
-      ConfigurationCompat.getLocales(application.resources.configuration)[0] ?: Locale.getDefault()
 
   val wordLanguage =
       dataStore.data
