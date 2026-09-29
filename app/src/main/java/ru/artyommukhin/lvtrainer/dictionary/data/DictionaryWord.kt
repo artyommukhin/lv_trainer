@@ -7,7 +7,13 @@ import androidx.room.PrimaryKey
 @Entity(tableName = "word")
 data class DictionaryWord(
     @PrimaryKey(autoGenerate = true) val id: Int = 0,
-    @ColumnInfo val word: String,
-    @ColumnInfo val translation: String,
+    val word: String,
+    val translation: String,
     @ColumnInfo(defaultValue = "0") val trainCount: Int = 0,
-)
+    @ColumnInfo(defaultValue = NO_LANGUAGE_TAG) val wordLanguageTag: String,
+    @ColumnInfo(defaultValue = NO_LANGUAGE_TAG) val translationLanguageTag: String,
+) {
+  companion object {
+    const val NO_LANGUAGE_TAG = "NO_LANGUAGE_TAG"
+  }
+}

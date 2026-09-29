@@ -161,8 +161,15 @@ fun DictionaryPage(
   if (openInputDialog) {
     WordInputDialog(
         onDismissRequest = { openInputDialog = false },
-        onConfirmation = { word, translation ->
-          viewModel.addWord(DictionaryWord(word = word, translation = translation))
+        onConfirmation = { word, translation, wordLanguage, translationLanguage ->
+          val dictWord =
+              DictionaryWord(
+                  word = word,
+                  translation = translation,
+                  wordLanguageTag = wordLanguage.tag,
+                  translationLanguageTag = translationLanguage.tag,
+              )
+          viewModel.addWord(dictWord)
         },
     )
   }

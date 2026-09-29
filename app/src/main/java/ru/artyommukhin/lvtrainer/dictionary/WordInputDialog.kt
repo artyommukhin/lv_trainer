@@ -36,11 +36,18 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import ru.artyommukhin.lvtrainer.dictionary.data.Language
 
 @Composable
 fun WordInputDialog(
     onDismissRequest: () -> Unit,
-    onConfirmation: (word: String, translation: String) -> Unit,
+    onConfirmation:
+        (
+            word: String,
+            translation: String,
+            wordLanguage: Language,
+            translationLanguage: Language,
+        ) -> Unit,
     viewModel: WordInputViewModel = hiltViewModel(),
 ) {
   var word by
@@ -68,7 +75,12 @@ fun WordInputDialog(
 
   fun onSubmit() {
     if (!isInputValid()) return
-    onConfirmation(word.text.trim(), translation.text.trim())
+    onConfirmation(
+        word.text.trim(),
+        translation.text.trim(),
+        wordLanguage,
+        nativeLanguage,
+    )
     onDismissRequest()
   }
 
