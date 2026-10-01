@@ -53,6 +53,12 @@ constructor(
     }
   }
 
+  fun updateWord(word: DictionaryWord) {
+    viewModelScope.launch {
+      repository.updateWord(word)
+    }
+  }
+
   fun removeWord(word: DictionaryWord) {
     viewModelScope.launch {
       repository.removeWord(word)

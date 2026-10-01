@@ -30,6 +30,10 @@ constructor(
     dictionary.insert(word)
   }
 
+  suspend fun updateWord(word: DictionaryWord) {
+    dictionary.update(word)
+  }
+
   suspend fun removeWord(word: DictionaryWord) {
     dictionary.delete(word)
   }

@@ -1,5 +1,6 @@
 package ru.artyommukhin.lvtrainer.dictionary
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -25,6 +26,7 @@ fun DictionaryItem(
     word: DictionaryWord,
     onReset: () -> Unit,
     onDelete: () -> Unit,
+    onClick: () -> Unit,
 ) {
 
   val wordLanguageSymbol = Language(word.wordLanguageTag).symbol
@@ -32,7 +34,7 @@ fun DictionaryItem(
   val translationLanguageSymbol = Language(word.translationLanguageTag).symbol
 
   Row(
-      modifier = Modifier.fillMaxWidth(),
+      modifier = Modifier.fillMaxWidth().clickable(onClick = onClick),
       horizontalArrangement = Arrangement.SpaceBetween,
       verticalAlignment = Alignment.CenterVertically,
   ) {

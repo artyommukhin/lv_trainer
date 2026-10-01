@@ -19,6 +19,7 @@ fun DictionaryWordList(
     words: List<DictionaryWord>,
     onResetWord: (word: DictionaryWord) -> Unit,
     onDeleteWord: (word: DictionaryWord) -> Unit,
+    onClickWord: (word: DictionaryWord) -> Unit,
     emptyListText: String,
 ) {
   if (words.isEmpty()) {
@@ -47,6 +48,7 @@ fun DictionaryWordList(
           word,
           onReset = { onResetWord(word) },
           onDelete = { onDeleteWord(word) },
+          onClick = { onClickWord(word) },
       )
     }
   }

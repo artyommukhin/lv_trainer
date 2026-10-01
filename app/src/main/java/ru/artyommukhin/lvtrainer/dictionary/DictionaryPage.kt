@@ -47,6 +47,7 @@ fun DictionaryPage(
 ) {
   val state by viewModel.state.collectAsStateWithLifecycle()
   var openInputDialog by rememberSaveable { mutableStateOf(false) }
+  var wordToEdit by rememberSaveable { mutableStateOf<DictionaryWord?>(null) }
 
   Scaffold(
       topBar = {
@@ -130,6 +131,7 @@ fun DictionaryPage(
                       s.untrainedWords,
                       onResetWord = { word -> viewModel.resetWordProgress(word) },
                       onDeleteWord = { word -> viewModel.removeWord(word) },
+                      onClickWord = { word -> wordToEdit = word },
                       emptyListText = "Все слова изучены",
                   )
 
@@ -138,6 +140,7 @@ fun DictionaryPage(
                       s.trainedWords,
                       onResetWord = { word -> viewModel.resetWordProgress(word) },
                       onDeleteWord = { word -> viewModel.removeWord(word) },
+                      onClickWord = { word -> wordToEdit = word },
                       emptyListText = "Нет изученных слов",
                   )
             }
@@ -170,6 +173,23 @@ fun DictionaryPage(
                   translationLanguageTag = translationLanguage.tag,
               )
           viewModel.addWord(dictWord)
+        },
+    )
+  }
+
+  if (wordToEdit != null) {
+    WordInputDialog(
+        wordToEdit = wordToEdit,
+        onDismissRequest = { wordToEdit = null },
+        onConfirmation = { word, translation, wordLanguage, translationLanguage ->
+          val dictWord =
+              wordToEdit!!.copy(
+                  word = word,
+                  translation = translation,
+                  wordLanguageTag = wordLanguage.tag,
+                  translationLanguageTag = translationLanguage.tag,
+              )
+          if (dictWord != wordToEdit) viewModel.updateWord(dictWord)
         },
     )
   }

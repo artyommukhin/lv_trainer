@@ -36,10 +36,12 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import ru.artyommukhin.lvtrainer.dictionary.data.DictionaryWord
 import ru.artyommukhin.lvtrainer.dictionary.data.Language
 
 @Composable
 fun WordInputDialog(
+    wordToEdit: DictionaryWord? = null,
     onDismissRequest: () -> Unit,
     onConfirmation:
         (
@@ -48,15 +50,19 @@ fun WordInputDialog(
             wordLanguage: Language,
             translationLanguage: Language,
         ) -> Unit,
-    viewModel: WordInputViewModel = hiltViewModel(),
+    viewModel: WordInputViewModel =
+        hiltViewModel<WordInputViewModel, WordInputViewModel.Factory>(
+            key = wordToEdit?.id?.toString(),
+            creationCallback = { it.create(wordToEdit) },
+        ),
 ) {
   var word by
       rememberSaveable(stateSaver = TextFieldValue.Saver) {
-        mutableStateOf(TextFieldValue(""))
+        mutableStateOf(TextFieldValue(wordToEdit?.word.orEmpty()))
       }
   var translation by
       rememberSaveable(stateSaver = TextFieldValue.Saver) {
-        mutableStateOf(TextFieldValue(""))
+        mutableStateOf(TextFieldValue(wordToEdit?.translation.orEmpty()))
       }
 
   // TODO: use MutableInteractionSource instead for tracking focused state
@@ -68,7 +74,7 @@ fun WordInputDialog(
   val wordLanguage by viewModel.wordLanguage.collectAsStateWithLifecycle()
   var showWordLanguageSelectDialog by rememberSaveable { mutableStateOf(false) }
 
-  val nativeLanguage by viewModel.nativeLanguage.collectAsStateWithLifecycle()
+  val nativeLanguage by viewModel.translationLanguage.collectAsStateWithLifecycle()
   var showNativeLanguageSelectDialog by rememberSaveable { mutableStateOf(false) }
 
   fun isInputValid() = word.text.isNotBlank() && translation.text.isNotBlank()
@@ -94,7 +100,7 @@ fun WordInputDialog(
           horizontalAlignment = Alignment.CenterHorizontally,
       ) {
         Text(
-            text = "Добавить слово",
+            text = if (wordToEdit == null) "Добавить слово" else "Обновить слово",
             fontSize = TextUnit(24f, TextUnitType.Sp),
             modifier = Modifier.padding(16.dp),
         )
