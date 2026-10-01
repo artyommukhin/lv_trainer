@@ -11,10 +11,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import ru.artyommukhin.lvtrainer.R
 import ru.artyommukhin.lvtrainer.dictionary.data.DictionaryWord
+import ru.artyommukhin.lvtrainer.dictionary.data.Language
 
 @Composable
 fun DictionaryItem(
@@ -22,6 +26,11 @@ fun DictionaryItem(
     onReset: () -> Unit,
     onDelete: () -> Unit,
 ) {
+
+  val wordLanguageSymbol = Language(word.wordLanguageTag).symbol
+
+  val translationLanguageSymbol = Language(word.translationLanguageTag).symbol
+
   Row(
       modifier = Modifier.fillMaxWidth(),
       horizontalArrangement = Arrangement.SpaceBetween,
@@ -30,7 +39,16 @@ fun DictionaryItem(
     Text(
         modifier = Modifier.padding(end = 8.dp).weight(1f),
         fontSize = 24.sp,
-        text = "${word.word} - ${word.translation}",
+        text =
+            buildAnnotatedString {
+              withStyle(SpanStyle(fontSize = 14.sp)) { append(wordLanguageSymbol) }
+              append(" ")
+              append(word.word)
+              append(" - ")
+              withStyle(SpanStyle(fontSize = 14.sp)) { append(translationLanguageSymbol) }
+              append(" ")
+              append(word.translation)
+            },
     )
 
     Text("${word.trainCount * 20}%")
