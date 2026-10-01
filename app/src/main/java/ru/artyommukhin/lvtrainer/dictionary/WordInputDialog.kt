@@ -1,6 +1,8 @@
 package ru.artyommukhin.lvtrainer.dictionary
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsFocusedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -24,7 +26,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.intl.Locale
@@ -65,9 +66,10 @@ fun WordInputDialog(
         mutableStateOf(TextFieldValue(wordToEdit?.translation.orEmpty()))
       }
 
-  // TODO: use MutableInteractionSource instead for tracking focused state
-  var isWordFocused by rememberSaveable { mutableStateOf(false) }
-  var isTranslationFocused by rememberSaveable { mutableStateOf(false) }
+  val wordInteractionSource = remember { MutableInteractionSource() }
+  val isWordFocused by wordInteractionSource.collectIsFocusedAsState()
+  val translationInteractionSource = remember { MutableInteractionSource() }
+  val isTranslationFocused by translationInteractionSource.collectIsFocusedAsState()
   val wordFocusRequester = remember { FocusRequester() }
   val translationFocusRequester = remember { FocusRequester() }
 
@@ -105,13 +107,8 @@ fun WordInputDialog(
             modifier = Modifier.padding(16.dp),
         )
         OutlinedTextField(
-            modifier =
-                Modifier.focusRequester(wordFocusRequester).onFocusChanged {
-                  if (it.isFocused) {
-                    isWordFocused = true
-                    isTranslationFocused = false
-                  }
-                },
+            modifier = Modifier.focusRequester(wordFocusRequester),
+            interactionSource = wordInteractionSource,
             value = word,
             onValueChange = { word = it },
             label = { Text("Слово") },
@@ -129,13 +126,8 @@ fun WordInputDialog(
             },
         )
         OutlinedTextField(
-            modifier =
-                Modifier.focusRequester(translationFocusRequester).onFocusChanged {
-                  if (it.isFocused) {
-                    isTranslationFocused = true
-                    isWordFocused = false
-                  }
-                },
+            modifier = Modifier.focusRequester(translationFocusRequester),
+            interactionSource = translationInteractionSource,
             value = translation,
             onValueChange = { translation = it },
             label = { Text("Перевод") },
