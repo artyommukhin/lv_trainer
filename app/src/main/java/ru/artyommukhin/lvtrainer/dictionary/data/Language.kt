@@ -16,6 +16,8 @@ data class Language(
     }
   }
 
+  constructor(languageTag: String) : this(locale = Locale.forLanguageTag(languageTag))
+
   override fun toString(): String {
     return "$symbol ${locale.displayLanguage} ($tag)"
   }
