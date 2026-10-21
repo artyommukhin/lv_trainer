@@ -120,6 +120,7 @@ fun TrainingPage(
 
         is TrainingUiState.Active -> {
           var input by rememberSaveable { mutableStateOf("") }
+          val model = WordWithAnswer(s.word, trainingType)
 
           Text(
               "Слово изучено на ${s.word.progressPercent}%",
@@ -129,64 +130,49 @@ fun TrainingPage(
           Spacer(Modifier.height(32.dp))
 
           Text(
-              buildAnnotatedString {
-                val (word, translation) =
-                    when (trainingType) {
-                      TrainingType.WORD_TO_TRANSLATION ->
-                          Pair(
-                              s.word.word,
-                              s.word.translation,
-                          )
-
-                      TrainingType.TRANSLATION_TO_WORD ->
-                          Pair(
-                              s.word.translation,
-                              s.word.word,
-                          )
-                    }
-
-                append(word)
-                append(" - ")
-                when (s.isAnsweredCorrectly) {
-                  null -> {
-                    withStyle(style = SpanStyle(color = Color.Gray)) {
-                      append("???")
-                    }
-                  }
-
-                  true -> {
-                    withStyle(
-                        style =
-                            SpanStyle(
-                                color = Color(76, 175, 80, 255),
-                            )
-                    ) {
-                      append(translation)
-                    }
-                  }
-
-                  false -> {
-                    withStyle(
-                        style =
-                            SpanStyle(
-                                color = Color(196, 57, 48, 255),
-                                textDecoration = TextDecoration.LineThrough,
-                            )
-                    ) {
-                      append(input)
+              modifier = Modifier.padding(horizontal = 16.dp),
+              text =
+                  buildAnnotatedString {
+                    withStyle(style = SpanStyle(fontSize = 14.sp)) {
+                      append(model.trainedWordLanguage.symbol)
                     }
                     append(" ")
-                    withStyle(
-                        style =
-                            SpanStyle(
-                                color = Color(76, 175, 80, 255),
-                            )
-                    ) {
-                      append(translation)
+                    append(model.trainedWord)
+                    append(" - ")
+                    when (s.isAnsweredCorrectly) {
+                      null -> {
+                        withStyle(style = SpanStyle(color = Color.Gray)) {
+                          append("???")
+                        }
+                      }
+
+                      true -> {
+                        withStyle(style = SpanStyle(fontSize = 14.sp)) {
+                          append(model.answerLanguage.symbol)
+                        }
+                        append(" ")
+                        withStyle(style = SpanStyle(color = Color(76, 175, 80, 255))) {
+                          append(model.answerWord)
+                        }
+                      }
+
+                      false -> {
+                        withStyle(
+                            style =
+                                SpanStyle(
+                                    color = Color(196, 57, 48, 255),
+                                    textDecoration = TextDecoration.LineThrough,
+                                )
+                        ) {
+                          append(input)
+                        }
+                        append(" ")
+                        withStyle(style = SpanStyle(color = Color(76, 175, 80, 255))) {
+                          append(model.answerWord)
+                        }
+                      }
                     }
-                  }
-                }
-              },
+                  },
               fontSize = 24.sp,
               fontWeight = FontWeight.Bold,
           )
@@ -197,6 +183,9 @@ fun TrainingPage(
               modifier = Modifier.fillMaxWidth().focusRequester(focusRequester),
               value = input,
               onValueChange = { if (!s.isAnswered) input = it },
+              leadingIcon = {
+                Text(model.answerLanguage.symbol)
+              },
               trailingIcon = {
                 if (input.trim() == "") return@TextField
 
@@ -225,6 +214,7 @@ fun TrainingPage(
                       imeAction =
                           if (input.trim() == "") ImeAction.None
                           else if (s.isAnswered) ImeAction.Next else ImeAction.Done,
+                      hintLocales = LocaleList(Locale(model.answerLanguage.locale)),
                   ),
               keyboardActions =
                   KeyboardActions(
@@ -241,6 +231,33 @@ fun TrainingPage(
             focusRequester.requestFocus()
           }
         }
+      }
+    }
+  }
+}
+
+class WordWithAnswer(
+    word: DictionaryWord,
+    trainingType: TrainingType,
+) {
+  val trainedWord: String
+  val answerWord: String
+  val trainedWordLanguage: Language
+  val answerLanguage: Language
+
+  init {
+    when (trainingType) {
+      TrainingType.WORD_TO_TRANSLATION -> {
+        trainedWord = word.word
+        answerWord = word.translation
+        trainedWordLanguage = Language(word.wordLanguageTag)
+        answerLanguage = Language(word.translationLanguageTag)
+      }
+      TrainingType.TRANSLATION_TO_WORD -> {
+        trainedWord = word.translation
+        answerWord = word.word
+        trainedWordLanguage = Language(word.translationLanguageTag)
+        answerLanguage = Language(word.wordLanguageTag)
       }
     }
   }
