@@ -19,34 +19,37 @@ fun DictionaryWordList(
     words: List<DictionaryWord>,
     onResetWord: (word: DictionaryWord) -> Unit,
     onDeleteWord: (word: DictionaryWord) -> Unit,
+    onClickWord: (word: DictionaryWord) -> Unit,
     emptyListText: String,
 ) {
-    if (words.isEmpty()) {
-        Box(modifier = Modifier.fillMaxSize()) {
-            Text(emptyListText, Modifier.align(Alignment.Center))
-        }
-        return
+  if (words.isEmpty()) {
+    Box(modifier = Modifier.fillMaxSize()) {
+      Text(emptyListText, Modifier.align(Alignment.Center))
     }
+    return
+  }
 
-    val columnState = rememberLazyListState()
+  val columnState = rememberLazyListState()
 
-    LazyColumn(
-        modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(
-            start = 16.dp,
-            end = 16.dp,
-            top = 24.dp,
-            bottom = 80.dp,
-        ),
-        verticalArrangement = Arrangement.spacedBy(8.dp),
-        state = columnState,
-    ) {
-        items(words) { word ->
-            DictionaryItem(
-                word,
-                onReset = { onResetWord(word) },
-                onDelete = { onDeleteWord(word) },
-            )
-        }
+  LazyColumn(
+      modifier = Modifier.fillMaxSize(),
+      contentPadding =
+          PaddingValues(
+              start = 16.dp,
+              end = 16.dp,
+              top = 24.dp,
+              bottom = 80.dp,
+          ),
+      verticalArrangement = Arrangement.spacedBy(8.dp),
+      state = columnState,
+  ) {
+    items(words) { word ->
+      DictionaryItem(
+          word,
+          onReset = { onResetWord(word) },
+          onDelete = { onDeleteWord(word) },
+          onClick = { onClickWord(word) },
+      )
     }
+  }
 }

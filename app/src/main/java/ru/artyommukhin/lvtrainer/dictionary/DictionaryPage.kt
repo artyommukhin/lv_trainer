@@ -31,12 +31,12 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.launch
-import ru.artyommukhin.lvtrainer.dictionary.data.DictionaryWord
 import ru.artyommukhin.lvtrainer.R
+import ru.artyommukhin.lvtrainer.dictionary.data.DictionaryWord
 
 enum class DictionaryPageTab(val label: String) {
-    UNTRAINED("В процессе"),
-    TRAINED("Изученные"),
+  UNTRAINED("В процессе"),
+  TRAINED("Изученные"),
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -45,122 +45,152 @@ fun DictionaryPage(
     onNavigateBack: () -> Unit,
     viewModel: DictionaryViewModel = hiltViewModel(),
 ) {
-    val state by viewModel.state.collectAsStateWithLifecycle()
-    var openInputDialog by rememberSaveable { mutableStateOf(false) }
+  val state by viewModel.state.collectAsStateWithLifecycle()
+  var openInputDialog by rememberSaveable { mutableStateOf(false) }
+  var wordToEdit by rememberSaveable { mutableStateOf<DictionaryWord?>(null) }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                navigationIcon = {
-                    IconButton(onClick = { onNavigateBack() }) {
-                        Icon(
-                            painter = painterResource(R.drawable.arrow_back),
-                            contentDescription = "Localized description"
-                        )
-                    }
-                },
-                title = { Text("Словарь") })
-        },
-        floatingActionButton = {
-            FloatingActionButton(
-                onClick = { openInputDialog = true },
-            ) {
+  Scaffold(
+      topBar = {
+        TopAppBar(
+            navigationIcon = {
+              IconButton(onClick = { onNavigateBack() }) {
                 Icon(
-                    painter = painterResource(R.drawable.add),
-                    contentDescription = "Add a word"
+                    painter = painterResource(R.drawable.arrow_back),
+                    contentDescription = "Localized description",
                 )
-            }
-        },
-    ) { paddingValues ->
-        when (val s = state) {
-            DictionaryState.Loading -> {
-                Box(
-                    modifier = Modifier
-                        .padding(paddingValues)
-                        .padding(horizontal = 16.dp, vertical = 24.dp)
-                        .fillMaxSize()
-                ) {
-                    CircularProgressIndicator(Modifier.align(Alignment.Center))
-                }
-            }
-
-            is DictionaryState.Failure -> {
-                Box(
-                    modifier = Modifier
-                        .padding(paddingValues)
-                        .padding(horizontal = 16.dp, vertical = 24.dp)
-                        .fillMaxSize()
-                ) {
-                    Text("Ошибка загрузки", Modifier.align(Alignment.Center))
-                }
-            }
-
-            is DictionaryState.Success -> {
-                val pagerState = rememberPagerState(
-                    initialPage = DictionaryPageTab.UNTRAINED.ordinal,
-                    pageCount = { DictionaryPageTab.entries.size },
-                )
-                val selectedTab = remember { derivedStateOf { pagerState.currentPage } }
-                val coroutineScope = rememberCoroutineScope()
-
-                Column(
-                    modifier = Modifier
-                        .padding(paddingValues),
-                ) {
-                    PrimaryTabRow(
-                        selectedTabIndex = selectedTab.value,
-                    ) {
-                        DictionaryPageTab.entries.forEachIndexed { index, tab ->
-                            Tab(
-                                selectedTab.value == index,
-                                onClick = {
-                                    coroutineScope.launch { pagerState.animateScrollToPage(index) }
-                                },
-                                text = { Text(tab.label) },
-                            )
-                        }
-                    }
-
-                    HorizontalPager(pagerState) { page ->
-                        val tab = DictionaryPageTab.entries[page]
-                        when (tab) {
-                            DictionaryPageTab.UNTRAINED -> DictionaryWordList(
-                                s.untrainedWords,
-                                onResetWord = { word -> viewModel.resetWordProgress(word) },
-                                onDeleteWord = { word -> viewModel.removeWord(word) },
-                                emptyListText = "Все слова изучены"
-                            )
-
-                            DictionaryPageTab.TRAINED -> DictionaryWordList(
-                                s.trainedWords,
-                                onResetWord = { word -> viewModel.resetWordProgress(word) },
-                                onDeleteWord = { word -> viewModel.removeWord(word) },
-                                emptyListText = "Нет изученных слов"
-                            )
-                        }
-                    }
-                }
-            }
-
-            DictionaryState.NoWords -> {
-                Box(
-                    modifier = Modifier
-                        .padding(paddingValues)
-                        .padding(vertical = 24.dp, horizontal = 16.dp)
-                        .fillMaxSize()
-                ) {
-                    Text("Пока здесь пусто", Modifier.align(Alignment.Center))
-                }
-            }
-        }
-    }
-
-    if (openInputDialog) {
-        WordInputDialog(
-            onDismissRequest = { openInputDialog = false },
-            onConfirmation = { word, translation ->
-                viewModel.addWord(DictionaryWord(word = word, translation = translation))
-            }
+              }
+            },
+            title = { Text("Словарь") },
         )
+      },
+      floatingActionButton = {
+        FloatingActionButton(
+            onClick = { openInputDialog = true },
+        ) {
+          Icon(
+              painter = painterResource(R.drawable.add),
+              contentDescription = "Add a word",
+          )
+        }
+      },
+  ) { paddingValues ->
+    when (val s = state) {
+      DictionaryState.Loading -> {
+        Box(
+            modifier =
+                Modifier.padding(paddingValues)
+                    .padding(horizontal = 16.dp, vertical = 24.dp)
+                    .fillMaxSize()
+        ) {
+          CircularProgressIndicator(Modifier.align(Alignment.Center))
+        }
+      }
+
+      is DictionaryState.Failure -> {
+        Box(
+            modifier =
+                Modifier.padding(paddingValues)
+                    .padding(horizontal = 16.dp, vertical = 24.dp)
+                    .fillMaxSize()
+        ) {
+          Text("Ошибка загрузки", Modifier.align(Alignment.Center))
+        }
+      }
+
+      is DictionaryState.Success -> {
+        val pagerState =
+            rememberPagerState(
+                initialPage = DictionaryPageTab.UNTRAINED.ordinal,
+                pageCount = { DictionaryPageTab.entries.size },
+            )
+        val selectedTab = remember { derivedStateOf { pagerState.currentPage } }
+        val coroutineScope = rememberCoroutineScope()
+
+        Column(
+            modifier = Modifier.padding(paddingValues),
+        ) {
+          PrimaryTabRow(
+              selectedTabIndex = selectedTab.value,
+          ) {
+            DictionaryPageTab.entries.forEachIndexed { index, tab ->
+              Tab(
+                  selectedTab.value == index,
+                  onClick = {
+                    coroutineScope.launch { pagerState.animateScrollToPage(index) }
+                  },
+                  text = { Text(tab.label) },
+              )
+            }
+          }
+
+          HorizontalPager(pagerState) { page ->
+            val tab = DictionaryPageTab.entries[page]
+            when (tab) {
+              DictionaryPageTab.UNTRAINED ->
+                  DictionaryWordList(
+                      s.untrainedWords,
+                      onResetWord = { word -> viewModel.resetWordProgress(word) },
+                      onDeleteWord = { word -> viewModel.removeWord(word) },
+                      onClickWord = { word -> wordToEdit = word },
+                      emptyListText = "Все слова изучены",
+                  )
+
+              DictionaryPageTab.TRAINED ->
+                  DictionaryWordList(
+                      s.trainedWords,
+                      onResetWord = { word -> viewModel.resetWordProgress(word) },
+                      onDeleteWord = { word -> viewModel.removeWord(word) },
+                      onClickWord = { word -> wordToEdit = word },
+                      emptyListText = "Нет изученных слов",
+                  )
+            }
+          }
+        }
+      }
+
+      DictionaryState.NoWords -> {
+        Box(
+            modifier =
+                Modifier.padding(paddingValues)
+                    .padding(vertical = 24.dp, horizontal = 16.dp)
+                    .fillMaxSize()
+        ) {
+          Text("Пока здесь пусто", Modifier.align(Alignment.Center))
+        }
+      }
     }
+  }
+
+  if (openInputDialog) {
+    WordInputDialog(
+        onDismissRequest = { openInputDialog = false },
+        onConfirmation = { word, translation, wordLanguage, translationLanguage ->
+          val dictWord =
+              DictionaryWord(
+                  word = word,
+                  translation = translation,
+                  wordLanguageTag = wordLanguage.tag,
+                  translationLanguageTag = translationLanguage.tag,
+              )
+          viewModel.addWord(dictWord)
+        },
+    )
+  }
+
+  if (wordToEdit != null) {
+    WordInputDialog(
+        wordToEdit = wordToEdit,
+        onDismissRequest = { wordToEdit = null },
+        onConfirmation = { word, translation, wordLanguage, translationLanguage ->
+          val dictWord =
+              wordToEdit!!.copy(
+                  word = word,
+                  translation = translation,
+                  wordLanguageTag = wordLanguage.tag,
+                  translationLanguageTag = translationLanguage.tag,
+              )
+          if (dictWord != wordToEdit) viewModel.updateWord(dictWord)
+        },
+    )
+  }
 }

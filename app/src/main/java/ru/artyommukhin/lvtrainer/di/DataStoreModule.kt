@@ -19,15 +19,15 @@ import javax.inject.Singleton
 @InstallIn(SingletonComponent::class)
 object DataStoreModule {
 
-    private const val PREFERENCES_NAME = "preferences"
+  private const val PREFERENCES_NAME = "preferences"
 
-    @Singleton
-    @Provides
-    fun provideDataStore(@ApplicationContext appContext: Context): DataStore<Preferences> {
-        return PreferenceDataStoreFactory.create(
-            corruptionHandler = ReplaceFileCorruptionHandler { emptyPreferences() },
-            migrations = listOf(SharedPreferencesMigration(appContext,PREFERENCES_NAME)),
-            produceFile = { appContext.preferencesDataStoreFile(PREFERENCES_NAME) }
-        )
-    }
+  @Singleton
+  @Provides
+  fun provideDataStore(@ApplicationContext appContext: Context): DataStore<Preferences> {
+    return PreferenceDataStoreFactory.create(
+        corruptionHandler = ReplaceFileCorruptionHandler { emptyPreferences() },
+        migrations = listOf(SharedPreferencesMigration(appContext, PREFERENCES_NAME)),
+        produceFile = { appContext.preferencesDataStoreFile(PREFERENCES_NAME) },
+    )
+  }
 }
