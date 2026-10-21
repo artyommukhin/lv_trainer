@@ -19,7 +19,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import ru.artyommukhin.lvtrainer.R
 import ru.artyommukhin.lvtrainer.dictionary.data.DictionaryWord
-import ru.artyommukhin.lvtrainer.dictionary.data.DictionaryWordDao
 import ru.artyommukhin.lvtrainer.dictionary.data.Language
 
 @Composable
@@ -29,8 +28,6 @@ fun DictionaryItem(
     onDelete: () -> Unit,
     onClick: () -> Unit,
 ) {
-
-  val trainedPercent = word.trainCount.floorDiv(DictionaryWordDao.TRAINED_THRESHOLD) * 100
 
   val wordLanguageSymbol = Language(word.wordLanguageTag).symbol
 
@@ -56,7 +53,7 @@ fun DictionaryItem(
             },
     )
 
-    Text("$trainedPercent%")
+    Text("${word.progressPercent}%")
 
     IconButton(onClick = { onReset() }) {
       Icon(

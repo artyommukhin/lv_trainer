@@ -39,6 +39,8 @@ import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.intl.Locale
+import androidx.compose.ui.text.intl.LocaleList
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withStyle
@@ -47,6 +49,8 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import ru.artyommukhin.lvtrainer.R
+import ru.artyommukhin.lvtrainer.dictionary.data.DictionaryWord
+import ru.artyommukhin.lvtrainer.dictionary.data.Language
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
@@ -118,7 +122,7 @@ fun TrainingPage(
           var input by rememberSaveable { mutableStateOf("") }
 
           Text(
-              "Слово изучено на ${s.word.trainCount * 20}%",
+              "Слово изучено на ${s.word.progressPercent}%",
               Modifier.align(Alignment.End).padding(horizontal = 16.dp),
           )
 

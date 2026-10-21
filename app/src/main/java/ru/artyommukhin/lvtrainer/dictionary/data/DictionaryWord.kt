@@ -2,7 +2,9 @@ package ru.artyommukhin.lvtrainer.dictionary.data
 
 import androidx.room.ColumnInfo
 import androidx.room.Entity
+import androidx.room.Ignore
 import androidx.room.PrimaryKey
+import kotlin.math.floor
 
 @Entity(tableName = "word")
 data class DictionaryWord(
@@ -13,6 +15,11 @@ data class DictionaryWord(
     @ColumnInfo(defaultValue = NO_LANGUAGE_TAG) val wordLanguageTag: String,
     @ColumnInfo(defaultValue = NO_LANGUAGE_TAG) val translationLanguageTag: String,
 ) {
+
+  @Ignore
+  val progressPercent =
+      floor(trainCount / DictionaryWordDao.TRAINED_THRESHOLD.toFloat() * 100).toInt()
+
   companion object {
     const val NO_LANGUAGE_TAG = "NO_LANGUAGE_TAG"
   }
