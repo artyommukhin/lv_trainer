@@ -1,13 +1,13 @@
 package ru.artyommukhin.lvtrainer.dictionary.data
 
+import java.util.Locale
+import javax.inject.Inject
+import javax.inject.Named
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import ru.artyommukhin.lvtrainer.database.AppDatabase
 import ru.artyommukhin.lvtrainer.di.LanguageModule
-import java.util.Locale
-import javax.inject.Inject
-import javax.inject.Named
 
 class DictionaryWordsRepository
 @Inject
@@ -26,6 +26,11 @@ constructor(
         WordsResult(untrained, trained)
       }
 
+  suspend fun getWord(id: Int): DictionaryWord? {
+    val word = dictionary.getById(id)?.run(::handleWordDefaultLanguageTags)
+    return word
+  }
+
   suspend fun addWord(word: DictionaryWord) {
     dictionary.insert(word)
   }
@@ -38,23 +43,29 @@ constructor(
     dictionary.delete(word)
   }
 
+  suspend fun increaseWordProgress(word: DictionaryWord) {
+    dictionary.increaseTrainCount(word.id)
+  }
+
   suspend fun resetWordProgress(word: DictionaryWord) {
     dictionary.resetTrainCount(word.id)
   }
 
   private fun Flow<List<DictionaryWord>>.handleDefaultLanguageTags() = map { words ->
-    words.map { word ->
-      val isDefaultWord = word.wordLanguageTag == DictionaryWord.NO_LANGUAGE_TAG
-      val isDefaultTranslation = word.translationLanguageTag == DictionaryWord.NO_LANGUAGE_TAG
+    words.map(::handleWordDefaultLanguageTags)
+  }
 
-      if (!isDefaultWord && !isDefaultTranslation) return@map word
+  private fun handleWordDefaultLanguageTags(word: DictionaryWord): DictionaryWord {
+    val isDefaultWord = word.wordLanguageTag == DictionaryWord.NO_LANGUAGE_TAG
+    val isDefaultTranslation = word.translationLanguageTag == DictionaryWord.NO_LANGUAGE_TAG
 
-      word.copy(
-          wordLanguageTag = if (isDefaultWord) defaultLanguageTag else word.wordLanguageTag,
-          translationLanguageTag =
-              if (isDefaultTranslation) defaultLanguageTag else word.translationLanguageTag,
-      )
-    }
+    if (!isDefaultWord && !isDefaultTranslation) return word
+
+    return word.copy(
+        wordLanguageTag = if (isDefaultWord) defaultLanguageTag else word.wordLanguageTag,
+        translationLanguageTag =
+            if (isDefaultTranslation) defaultLanguageTag else word.translationLanguageTag,
+    )
   }
 
   class WordsResult(

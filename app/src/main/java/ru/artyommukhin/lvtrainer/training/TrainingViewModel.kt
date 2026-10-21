@@ -9,10 +9,11 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import ru.artyommukhin.lvtrainer.database.AppDatabase
 import ru.artyommukhin.lvtrainer.dictionary.data.DictionaryWord
+import ru.artyommukhin.lvtrainer.dictionary.data.DictionaryWordsRepository
 
 sealed interface TrainingUiState {
   data object Loading : TrainingUiState
@@ -21,7 +22,7 @@ sealed interface TrainingUiState {
 
   data object NoUntrainedWords : TrainingUiState
 
-  class Active(
+  data class Active(
       val word: DictionaryWord,
       val isAnsweredCorrectly: Boolean? = null,
   ) : TrainingUiState {
@@ -34,7 +35,7 @@ sealed interface TrainingUiState {
 class TrainingViewModel
 @AssistedInject
 constructor(
-    database: AppDatabase,
+    private val repository: DictionaryWordsRepository,
     @Assisted val trainingType: TrainingType,
 ) : ViewModel() {
 
@@ -43,7 +44,6 @@ constructor(
     fun create(trainingType: TrainingType): TrainingViewModel
   }
 
-  private val dictionary = database.dictionaryWordsDao()
   private val _state = MutableStateFlow<TrainingUiState>(TrainingUiState.Loading)
   val state = _state.asStateFlow()
 
@@ -53,30 +53,32 @@ constructor(
 
   private fun init() {
     viewModelScope.launch(Dispatchers.IO) {
-      val wordCount = dictionary.getCount()
+      val words = repository.words.first()
 
-      if (wordCount == 0) {
+      if (words.isEmpty) {
         _state.update { TrainingUiState.NoWords }
         return@launch
       }
 
-      var word = dictionary.getRandomUntrainedWord()
-
-      if (word == null) {
+      if (words.untrainedWords.isEmpty()) {
         _state.update { TrainingUiState.NoUntrainedWords }
         return@launch
       }
 
-      if (wordCount == 1) {
+      if (words.untrainedWords.size == 1) {
+        val word = words.untrainedWords[0]
         _state.update { TrainingUiState.Active(word) }
         return@launch
       }
 
       val currentWord = (_state.value as? TrainingUiState.Active)?.word
 
-      while (word == currentWord) word = dictionary.getRandomUntrainedWord()
+      var word: DictionaryWord
+      do {
+        word = words.untrainedWords.random()
+      } while (word == currentWord)
 
-      _state.update { TrainingUiState.Active(word!!) }
+      _state.update { TrainingUiState.Active(word) }
     }
   }
 
@@ -95,8 +97,8 @@ constructor(
     }
 
     viewModelScope.launch(Dispatchers.IO) {
-      dictionary.increaseTrainCount(word.id)
-      val newWord = dictionary.getById(word.id)!!
+      repository.increaseWordProgress(word)
+      val newWord = repository.getWord(word.id)!!
 
       _state.update {
         TrainingUiState.Active(newWord, true)
