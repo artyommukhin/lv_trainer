@@ -2,6 +2,7 @@ package ru.artyommukhin.lvtrainer.di
 
 import android.content.Context
 import androidx.room.Room
+import androidx.room.RoomDatabase
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -24,5 +25,6 @@ object DatabaseModule {
               AppDatabase::class.java,
               "dictionary-db",
           )
+          .addMigrations(*AppDatabase.migrations.toTypedArray())
           .build()
 }
