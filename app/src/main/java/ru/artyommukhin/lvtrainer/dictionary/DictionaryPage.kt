@@ -39,6 +39,10 @@ enum class DictionaryPageTab(val label: String) {
   TRAINED("Изученные"),
 }
 
+data class WordInputDialogData(
+    val wordToEdit: DictionaryWord? = null,
+)
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DictionaryPage(
@@ -46,8 +50,7 @@ fun DictionaryPage(
     viewModel: DictionaryViewModel = hiltViewModel(),
 ) {
   val state by viewModel.state.collectAsStateWithLifecycle()
-  var openInputDialog by rememberSaveable { mutableStateOf(false) }
-  var wordToEdit by rememberSaveable { mutableStateOf<DictionaryWord?>(null) }
+  var inputDialogData by rememberSaveable { mutableStateOf<WordInputDialogData?>(null) }
 
   Scaffold(
       topBar = {
@@ -65,7 +68,7 @@ fun DictionaryPage(
       },
       floatingActionButton = {
         FloatingActionButton(
-            onClick = { openInputDialog = true },
+            onClick = { inputDialogData = WordInputDialogData() },
         ) {
           Icon(
               painter = painterResource(R.drawable.add),
@@ -131,7 +134,9 @@ fun DictionaryPage(
                       s.untrainedWords,
                       onResetWord = { word -> viewModel.resetWordProgress(word) },
                       onDeleteWord = { word -> viewModel.removeWord(word) },
-                      onClickWord = { word -> wordToEdit = word },
+                      onClickWord = { word ->
+                        inputDialogData = WordInputDialogData(wordToEdit = word)
+                      },
                       emptyListText = "Все слова изучены",
                   )
 
@@ -140,7 +145,9 @@ fun DictionaryPage(
                       s.trainedWords,
                       onResetWord = { word -> viewModel.resetWordProgress(word) },
                       onDeleteWord = { word -> viewModel.removeWord(word) },
-                      onClickWord = { word -> wordToEdit = word },
+                      onClickWord = { word ->
+                        inputDialogData = WordInputDialogData(wordToEdit = word)
+                      },
                       emptyListText = "Нет изученных слов",
                   )
             }
@@ -161,36 +168,10 @@ fun DictionaryPage(
     }
   }
 
-  if (openInputDialog) {
+  if (inputDialogData != null) {
     WordInputDialog(
-        onDismissRequest = { openInputDialog = false },
-        onConfirmation = { word, translation, wordLanguage, translationLanguage ->
-          val dictWord =
-              DictionaryWord(
-                  word = word,
-                  translation = translation,
-                  wordLanguageTag = wordLanguage.tag,
-                  translationLanguageTag = translationLanguage.tag,
-              )
-          viewModel.addWord(dictWord)
-        },
-    )
-  }
-
-  if (wordToEdit != null) {
-    WordInputDialog(
-        wordToEdit = wordToEdit,
-        onDismissRequest = { wordToEdit = null },
-        onConfirmation = { word, translation, wordLanguage, translationLanguage ->
-          val dictWord =
-              wordToEdit!!.copy(
-                  word = word,
-                  translation = translation,
-                  wordLanguageTag = wordLanguage.tag,
-                  translationLanguageTag = translationLanguage.tag,
-              )
-          if (dictWord != wordToEdit) viewModel.updateWord(dictWord)
-        },
+        wordToEdit = inputDialogData!!.wordToEdit,
+        onDismissRequest = { inputDialogData = null },
     )
   }
 }

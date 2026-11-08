@@ -26,6 +26,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.intl.Locale
@@ -38,19 +40,11 @@ import androidx.compose.ui.window.DialogProperties
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import ru.artyommukhin.lvtrainer.dictionary.data.DictionaryWord
-import ru.artyommukhin.lvtrainer.dictionary.data.Language
 
 @Composable
 fun WordInputDialog(
     wordToEdit: DictionaryWord? = null,
     onDismissRequest: () -> Unit,
-    onConfirmation:
-        (
-            word: String,
-            translation: String,
-            wordLanguage: Language,
-            translationLanguage: Language,
-        ) -> Unit,
     viewModel: WordInputViewModel =
         hiltViewModel<WordInputViewModel, WordInputViewModel.Factory>(
             key = wordToEdit?.id?.toString(),
@@ -79,17 +73,46 @@ fun WordInputDialog(
   val nativeLanguage by viewModel.translationLanguage.collectAsStateWithLifecycle()
   var showNativeLanguageSelectDialog by rememberSaveable { mutableStateOf(false) }
 
+  val state by viewModel.formState.collectAsStateWithLifecycle()
+
+  if (state.isSubmit) {
+    onDismissRequest()
+    viewModel.resetState()
+  }
+
   fun isInputValid() = word.text.isNotBlank() && translation.text.isNotBlank()
 
   fun onSubmit() {
     if (!isInputValid()) return
-    onConfirmation(
-        word.text.trim(),
-        translation.text.trim(),
-        wordLanguage,
-        nativeLanguage,
-    )
-    onDismissRequest()
+    if (wordToEdit == null) {
+      val newWord =
+          DictionaryWord(
+              word = word.text.trim(),
+              translation = translation.text.trim(),
+              wordLanguageTag = wordLanguage.tag,
+              translationLanguageTag = nativeLanguage.tag,
+          )
+      viewModel.addWord(newWord)
+    } else {
+      val editWord =
+          wordToEdit.copy(
+              word = word.text.trim(),
+              translation = translation.text.trim(),
+              wordLanguageTag = wordLanguage.tag,
+              translationLanguageTag = nativeLanguage.tag,
+          )
+      if (editWord != wordToEdit) viewModel.updateWord(editWord)
+    }
+  }
+
+  fun onWordChange(value: TextFieldValue) {
+    word = value
+    viewModel.resetError()
+  }
+
+  fun onTranslationChange(value: TextFieldValue) {
+    translation = value
+    viewModel.resetError()
   }
 
   Dialog(
@@ -110,7 +133,7 @@ fun WordInputDialog(
             modifier = Modifier.focusRequester(wordFocusRequester),
             interactionSource = wordInteractionSource,
             value = word,
-            onValueChange = { word = it },
+            onValueChange = ::onWordChange,
             label = { Text("Слово") },
             singleLine = true,
             keyboardOptions =
@@ -129,7 +152,7 @@ fun WordInputDialog(
             modifier = Modifier.focusRequester(translationFocusRequester),
             interactionSource = translationInteractionSource,
             value = translation,
-            onValueChange = { translation = it },
+            onValueChange = ::onTranslationChange,
             label = { Text("Перевод") },
             singleLine = true,
             keyboardOptions =
@@ -148,6 +171,13 @@ fun WordInputDialog(
               )
             },
         )
+
+        if (state.error != null)
+            Text(
+                state.error!!,
+                style = TextStyle(color = Color.Red),
+                modifier = Modifier.padding(8.dp),
+            )
 
         Row(
             modifier = Modifier.fillMaxWidth(),

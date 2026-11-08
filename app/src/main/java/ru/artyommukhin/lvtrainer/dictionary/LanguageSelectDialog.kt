@@ -3,6 +3,7 @@ package ru.artyommukhin.lvtrainer.dictionary
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
@@ -50,7 +51,8 @@ fun LanguageSelectDialog(
 
   BasicAlertDialog(
       onDismissRequest,
-      properties = DialogProperties(),
+      properties = DialogProperties(decorFitsSystemWindows = false),
+      modifier = Modifier.imePadding(),
   ) {
     Surface(
         modifier = Modifier.padding(vertical = 16.dp),

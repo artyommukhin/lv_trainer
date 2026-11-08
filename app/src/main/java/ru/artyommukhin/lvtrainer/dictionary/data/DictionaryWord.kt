@@ -3,10 +3,20 @@ package ru.artyommukhin.lvtrainer.dictionary.data
 import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.Ignore
+import androidx.room.Index
 import androidx.room.PrimaryKey
 import kotlin.math.floor
 
-@Entity(tableName = "word")
+@Entity(
+    tableName = "word",
+    indices =
+        [
+            Index(
+                value = ["word", "translation", "wordLanguageTag", "translationLanguageTag"],
+                unique = true,
+            )
+        ],
+)
 data class DictionaryWord(
     @PrimaryKey(autoGenerate = true) val id: Int = 0,
     val word: String,
