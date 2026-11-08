@@ -47,18 +47,6 @@ constructor(
     }
   }
 
-  fun addWord(word: DictionaryWord) {
-    viewModelScope.launch {
-      repository.addWord(word)
-    }
-  }
-
-  fun updateWord(word: DictionaryWord) {
-    viewModelScope.launch {
-      repository.updateWord(word)
-    }
-  }
-
   fun removeWord(word: DictionaryWord) {
     viewModelScope.launch {
       repository.removeWord(word)

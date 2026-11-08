@@ -1,5 +1,6 @@
 package ru.artyommukhin.lvtrainer.dictionary
 
+import android.database.sqlite.SQLiteConstraintException
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
@@ -10,6 +11,8 @@ import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
+import java.util.Locale
+import javax.inject.Named
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
@@ -18,9 +21,13 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import ru.artyommukhin.lvtrainer.di.LanguageModule
 import ru.artyommukhin.lvtrainer.dictionary.data.DictionaryWord
+import ru.artyommukhin.lvtrainer.dictionary.data.DictionaryWordsRepository
 import ru.artyommukhin.lvtrainer.dictionary.data.Language
-import java.util.Locale
-import javax.inject.Named
+
+data class WordInputFormState(
+    val error: String? = null,
+    val isSubmit: Boolean = false,
+)
 
 @HiltViewModel(assistedFactory = WordInputViewModel.Factory::class)
 class WordInputViewModel
@@ -29,12 +36,16 @@ constructor(
     @Named(LanguageModule.DEFAULT_LOCALE) private val defaultLocale: Locale,
     private val dataStore: DataStore<Preferences>,
     @Assisted private val wordToEdit: DictionaryWord?,
+    private val repository: DictionaryWordsRepository,
 ) : ViewModel() {
 
   @AssistedFactory
   interface Factory {
     fun create(wordToEdit: DictionaryWord?): WordInputViewModel
   }
+
+  private val _formState = MutableStateFlow(WordInputFormState())
+  val formState = _formState.asStateFlow()
 
   private val _wordLanguage = MutableStateFlow(Language(defaultLocale))
   val wordLanguage = _wordLanguage.asStateFlow()
@@ -77,6 +88,36 @@ constructor(
     viewModelScope.launch {
       dataStore.edit { it[nativeLocaleKey] = language.tag }
     }
+  }
+
+  fun addWord(word: DictionaryWord) {
+    viewModelScope.launch {
+      try {
+        repository.addWord(word)
+        _formState.update { it.copy(isSubmit = true) }
+      } catch (_: SQLiteConstraintException) {
+        _formState.update { it.copy(error = "Такое слово уже есть в словаре") }
+      }
+    }
+  }
+
+  fun updateWord(word: DictionaryWord) {
+    viewModelScope.launch {
+      try {
+        repository.updateWord(word)
+        _formState.update { it.copy(isSubmit = true) }
+      } catch (_: SQLiteConstraintException) {
+        _formState.update { it.copy(error = "Такое слово уже есть в словаре") }
+      }
+    }
+  }
+
+  fun resetError() {
+    _formState.update { it.copy(error = null) }
+  }
+
+  fun resetState() {
+    _formState.update { WordInputFormState() }
   }
 
   companion object {
